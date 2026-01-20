@@ -101,11 +101,27 @@
                     </div>
                     
                     <div id="github-config" class="hidden space-y-2 mt-2 bg-gray-800 p-2 rounded border border-gray-700">
-                        <input type="text" id="gh-username" placeholder="GitHub Username" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
-                        <input type="text" id="gh-repo" placeholder="Repository Name" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
-                        <input type="text" id="gh-token" placeholder="Personal Access Token (ghp_...)" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
-                        <input type="text" id="gh-filename" value="syllabus_data.json" placeholder="File Name (e.g. data.json)" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
-                        <button onclick="saveGithubConfig()" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 rounded font-bold">Connect & Sync</button>
+                        <!-- Pre-filled Values -->
+                        <div class="grid grid-cols-1 gap-2">
+                            <div>
+                                <label class="text-[10px] text-gray-400">Username</label>
+                                <input type="text" id="gh-username" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400">Repository</label>
+                                <input type="text" id="gh-repo" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400">File Name</label>
+                                <input type="text" id="gh-filename" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-yellow-400">Personal Access Token (Required)</label>
+                                <input type="text" id="gh-token" placeholder="Paste your new token here..." class="bg-gray-900 border border-yellow-600 rounded px-2 py-1 text-xs w-full text-white placeholder-gray-500">
+                            </div>
+                        </div>
+                        
+                        <button onclick="saveGithubConfig()" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded font-bold mt-2">Connect & Sync</button>
                         <p class="text-[9px] text-gray-400">Token needs 'repo' scope. Don't share this URL with others after saving.</p>
                     </div>
 
@@ -171,20 +187,20 @@
         let currentDocId = null;
         let allDocs = {};
 
-        // --- GITHUB CONFIG ---
-        // REPLACE WITH YOUR NEW TOKEN HERE
+        // --- GITHUB CONFIG (PRE-FILLED) ---
         let GH_USER = localStorage.getItem('gh_user') || 'kausarveo-art';
         let GH_REPO = localStorage.getItem('gh_repo') || 'sb1';
-        let GH_TOKEN = localStorage.getItem('gh_token') || 'YOUR_NEW_TOKEN_HERE'; 
         let GH_FILE = localStorage.getItem('gh_file') || 'syllabus_data.json';
+        let GH_TOKEN = localStorage.getItem('gh_token') || ''; // Empty as requested
+        
         let ghFileSha = null;
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Fill inputs if saved
+            // Fill inputs if saved or defaults
             document.getElementById('gh-username').value = GH_USER;
             document.getElementById('gh-repo').value = GH_REPO;
-            document.getElementById('gh-token').value = GH_TOKEN;
             document.getElementById('gh-filename').value = GH_FILE;
+            document.getElementById('gh-token').value = GH_TOKEN;
 
             // Load Local first
             const stored = localStorage.getItem('school_syllabus_data');
@@ -195,8 +211,8 @@
                 createNewFile(true);
             }
 
-            // Try Sync if config exists
-            if(GH_USER && GH_REPO && GH_TOKEN && GH_TOKEN !== 'YOUR_NEW_TOKEN_HERE') {
+            // If token is already present (from localStorage), try sync
+            if(GH_TOKEN && GH_TOKEN.trim() !== '') {
                 syncWithGithub(false);
                 document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-green-500 text-[8px]"></i> Connected';
             } else {
@@ -236,7 +252,6 @@
             const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${GH_FILE}`;
             
             try {
-                // 1. GET existing file to get SHA and Content
                 const response = await fetch(url, {
                     headers: { 
                         'Authorization': `token ${GH_TOKEN}`,
@@ -248,7 +263,6 @@
                     const data = await response.json();
                     ghFileSha = data.sha;
                     
-                    // Decode content
                     try {
                         const serverContent = decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, ""))));
                         const serverDocs = JSON.parse(serverContent);
@@ -283,7 +297,7 @@
         }
 
         async function pushToGithub() {
-            if(!GH_TOKEN || GH_TOKEN === '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') return;
+            if(!GH_TOKEN) return;
             updateStatus("Pushing to GitHub...", "syncing");
 
             const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${GH_FILE}`;
@@ -316,11 +330,8 @@
                 } else {
                     const errorData = await response.json();
                     if(response.status === 409) {
-                        // Conflict: File changed on server. Re-fetch SHA and try again silently?
-                        // For now, let's just alert.
                         console.warn("Conflict detected. Re-syncing...");
-                        await syncWithGithub(false); // Get new SHA
-                        // Retry push? Dangerous loop. Let user trigger next save.
+                        await syncWithGithub(false); 
                         updateStatus("Conflict - Retrying...", "error");
                     } else {
                         alert("Push Failed: " + (errorData.message || response.status));
@@ -367,8 +378,7 @@
         function saveAllDocs() {
             localStorage.setItem('school_syllabus_data', JSON.stringify(allDocs));
             renderFileList();
-            // Trigger Cloud Save (Debounced ideally, but direct for now)
-            if(GH_TOKEN && GH_TOKEN !== 'YOUR_NEW_TOKEN_HERE') pushToGithub();
+            if(GH_TOKEN && GH_TOKEN.trim() !== '') pushToGithub();
         }
 
         function generateId() { return 'doc_' + Date.now(); }
