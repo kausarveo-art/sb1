@@ -1,1 +1,25 @@
-{}
+{
+  "doc_1768907986307": {
+    "id": "doc_1768907986307",
+    "fileName": "Class Prep",
+    "timestamp": 1768907986312,
+    "schoolName": "SCHOOL NAME HERE",
+    "address": "An English Medium School System",
+    "title": "Winter Vacation Syllabus",
+    "className": "5th",
+    "session": "2025-26",
+    "logoSrc": "",
+    "footerLeft": "Class Teacher",
+    "footerRight": "Principal",
+    "rows": [
+      {
+        "subject": "English",
+        "details": "Unit 1 & 2.",
+        "isUrdu": false,
+        "textAlign": "left",
+        "fontSize": "",
+        "color": ""
+      }
+    ]
+  }
+}
