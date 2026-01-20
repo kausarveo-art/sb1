@@ -1,8 +1,8 @@
 {
-  "doc_1768894150050": {
-    "id": "doc_1768894150050",
+  "doc_1768896155694": {
+    "id": "doc_1768896155694",
     "fileName": "New Syllabus",
-    "timestamp": 1768895355696,
+    "timestamp": 1768896155696,
     "schoolName": "SCHOOL NAME HERE",
     "address": "An English Medium School System",
     "title": "Winter Vacation Syllabus",
@@ -13,8 +13,8 @@
     "footerRight": "Principal",
     "rows": [
       {
-        "subject": "",
-        "details": "",
+        "subject": "English",
+        "details": "Unit 1 & 2.",
         "isUrdu": false
       }
     ]
