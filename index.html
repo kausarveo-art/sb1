@@ -37,6 +37,7 @@
         th { text-align: left; padding: 8px 8px; border-bottom: 2px solid #e2e8f0; vertical-align: bottom; }
         td { padding: 16px 8px; vertical-align: top; border-bottom: 1px solid #f1f5f9; }
 
+        /* Menu Animation */
         .menu-hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
         .menu-visible { transform: translateX(0); opacity: 1; pointer-events: auto; }
         #action-menu { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -84,14 +85,9 @@
                     <div class="relative flex justify-center"><span class="px-2 bg-white text-xs text-gray-400">OPEN</span></div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="openFileModalFromWelcome('local')" class="w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2 text-sm">
-                        <i class="fas fa-folder-open text-yellow-500"></i> Saved Files
-                    </button>
-                    <button onclick="openFileModal('cloud')" class="w-full bg-gray-900 border border-gray-900 hover:bg-black text-white font-semibold py-2.5 rounded-lg transition flex items-center justify-center gap-2 text-sm">
-                        <i class="fab fa-github"></i> Cloud
-                    </button>
-                </div>
+                <button onclick="openFileModalFromWelcome()" class="w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2">
+                    <i class="fas fa-folder-open text-gray-400"></i> Open Existing File
+                </button>
             </div>
         </div>
     </div>
@@ -99,14 +95,11 @@
     <!-- NAVBAR -->
     <nav id="navbar" class="fixed top-0 left-0 right-0 h-[60px] bg-white border-b border-gray-200 z-40 px-4 flex items-center justify-between shadow-sm no-print">
         <div class="flex items-center gap-3">
-            <button onclick="openFileModal('local')" class="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 transition" title="Saved Files">
-                <i class="fas fa-folder-open text-lg"></i>
-            </button>
-            <button onclick="openFileModal('cloud')" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition" title="GitHub Sync">
+            <button onclick="openFileModal()" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 hover:bg-black text-white transition shadow-lg" title="Cloud Files">
                 <i class="fab fa-github text-lg"></i>
             </button>
-            <div id="sync-status-nav" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 border border-gray-200 text-xs font-medium text-gray-500">
-                <i class="fas fa-circle text-[8px] text-gray-400"></i> <span>Local</span>
+            <div id="sync-status-nav" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 border border-gray-200 text-xs font-medium text-gray-500 cursor-pointer" onclick="openFileModal()">
+                <i class="fas fa-cloud"></i> <span>Local Only</span>
             </div>
         </div>
         
@@ -179,19 +172,19 @@
         </div>
     </div>
 
-    <!-- UNIFIED FILE MODAL -->
+    <!-- SAVED FILES MODAL -->
     <div id="file-modal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm hidden flex items-center justify-center no-print opacity-0 transition-opacity duration-300 p-4">
         <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl transform scale-95 transition-transform duration-300 p-6 relative flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800" id="modal-title">Saved Files</h2>
-                    <p class="text-xs sm:text-sm text-gray-500" id="modal-subtitle">Manage your local documents</p>
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Cloud Manager</h2>
+                    <p class="text-xs sm:text-sm text-gray-500">Sync Data with GitHub</p>
                 </div>
                 <button onclick="closeFileModal()" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition"><i class="fas fa-times text-xl"></i></button>
             </div>
             
-            <!-- GITHUB SETUP (Only visible in Cloud mode) -->
-            <div id="github-section" class="mb-4 bg-gray-900 text-white rounded-lg p-4 shadow-sm hidden">
+            <!-- GITHUB SETUP -->
+            <div class="mb-4 bg-gray-900 text-white rounded-lg p-4 shadow-sm">
                 <div class="flex flex-col gap-2">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2 font-bold text-sm">
@@ -213,7 +206,6 @@
                 </div>
             </div>
             
-            <!-- MINIMALIST FILE LIST -->
             <div class="flex-grow overflow-y-auto pr-2 mb-4 space-y-2" id="modal-file-list"></div>
             
             <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
@@ -298,70 +290,44 @@
             }
         });
 
-        // --- MODAL LOGIC (New Split Logic) ---
-        function openFileModal(mode = 'local') {
-            const modalTitle = document.getElementById('modal-title');
-            const modalSub = document.getElementById('modal-subtitle');
-            const ghSection = document.getElementById('github-section');
-            
-            if (mode === 'cloud') {
-                modalTitle.innerText = "Cloud Manager";
-                modalSub.innerText = "Sync Data with GitHub";
-                ghSection.classList.remove('hidden');
-            } else {
-                modalTitle.innerText = "Saved Files";
-                modalSub.innerText = "Local Documents";
-                ghSection.classList.add('hidden');
-            }
-            
-            renderFileList();
-            document.getElementById('file-modal').classList.remove('hidden');
-            setTimeout(()=>document.getElementById('file-modal').classList.remove('opacity-0'),10);
-        }
-
-        function renderFileList() {
-            const listEl = document.getElementById('modal-file-list'); listEl.innerHTML = '';
-            const ids = Object.keys(allDocs).sort((a,b) => allDocs[b].timestamp - allDocs[a].timestamp);
-            
-            if (ids.length === 0) { listEl.innerHTML = '<div class="text-center py-10 text-gray-400"><p>No files.</p></div>'; return; }
-            
-            // Check if Cloud is connected for Tick Mark
-            const isCloudConnected = (GH_TOKEN && GH_TOKEN.trim() !== '');
-
-            ids.forEach(id => {
-                const div = document.createElement('div'); 
-                div.className = `file-item ${id === currentDocId ? 'active' : ''}`; 
-                div.onclick = () => loadDoc(id);
-                
-                // Add Tick if connected
-                const cloudIcon = isCloudConnected ? '<i class="fas fa-check-circle text-green-500 text-xs ml-2" title="Synced to Cloud"></i>' : '';
-                
-                div.innerHTML = `
-                    <div class="flex flex-col flex-grow">
-                        <span class="font-bold text-gray-800 flex items-center">${allDocs[id].fileName} ${cloudIcon}</span>
-                        <span class="text-xs text-gray-500">${new Date(allDocs[id].timestamp).toLocaleDateString()}</span>
-                    </div>
-                    <div class="flex gap-1 ml-2">
-                        <button onclick="renameFile(event, '${id}')" class="text-gray-400 hover:text-blue-500 p-2"><i class="fas fa-edit"></i></button>
-                        <button onclick="deleteFile(event, '${id}')" class="text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button>
-                    </div>`;
-                listEl.appendChild(div);
-            });
-        }
-
         // --- WELCOME SCREEN ---
         function startNewDocument() {
             const nameInput = document.getElementById('welcome-doc-name');
             let docName = nameInput.value.trim();
             if (!docName) { alert("Please enter a name."); nameInput.focus(); return; }
-            createNewFile(true, docName);
-            hideWelcomeScreen();
-            nameInput.value = "";
+            
+            try {
+                createNewFile(true, docName);
+                hideWelcomeScreen();
+                nameInput.value = "";
+            } catch (e) {
+                alert("Error creating file: " + e.message);
+            }
         }
         function handleEnter(e) { if(e.key === 'Enter') startNewDocument(); }
-        function showWelcomeScreen() { document.getElementById('welcome-screen').classList.remove('fade-out'); document.body.style.overflow = "hidden"; }
-        function hideWelcomeScreen() { document.getElementById('welcome-screen').classList.add('fade-out'); document.body.style.overflow = "auto"; }
-        function openFileModalFromWelcome(mode) { renderFileList(); if (Object.keys(allDocs).length === 0 && (!GH_TOKEN || GH_TOKEN.trim() === '')) { alert("No saved files found."); return; } openFileModal(mode); }
+        
+        function showWelcomeScreen() { 
+            const el = document.getElementById('welcome-screen');
+            el.style.display = 'flex';
+            setTimeout(() => el.classList.remove('fade-out'), 10);
+            document.body.style.overflow = "hidden"; 
+        }
+        
+        function hideWelcomeScreen() { 
+            const el = document.getElementById('welcome-screen');
+            el.classList.add('fade-out'); 
+            document.body.style.overflow = "auto"; 
+            setTimeout(() => el.style.display = 'none', 300);
+        }
+        
+        function openFileModalFromWelcome() { 
+            renderFileList(); 
+            if (Object.keys(allDocs).length === 0 && (!GH_TOKEN || GH_TOKEN.trim() === '')) { 
+                alert("No saved files found."); 
+                return; 
+            } 
+            openFileModal(); 
+        }
 
         // --- GITHUB LOGIC ---
         function toggleGithubConfig() { document.getElementById('github-config').classList.toggle('hidden'); }
@@ -457,6 +423,17 @@
             setTimeout(() => { document.querySelectorAll('textarea').forEach(el => autoResize(el)); }, 0);
             document.querySelectorAll('input, textarea').forEach(checkLanguage);
         }
+        
+        function renderFileList() {
+            const listEl = document.getElementById('modal-file-list'); listEl.innerHTML = '';
+            const ids = Object.keys(allDocs).sort((a,b) => allDocs[b].timestamp - allDocs[a].timestamp);
+            if (ids.length === 0) { listEl.innerHTML = '<div class="text-center py-10 text-gray-400"><p>No files.</p></div>'; return; }
+            ids.forEach(id => {
+                const div = document.createElement('div'); div.className = `file-item ${id === currentDocId ? 'active' : ''}`; div.onclick = () => loadDoc(id);
+                div.innerHTML = `<div class="flex flex-col flex-grow"><span class="font-bold text-gray-800">${allDocs[id].fileName}</span><span class="text-xs text-gray-500">${new Date(allDocs[id].timestamp).toLocaleDateString()}</span></div><div class="flex gap-1 ml-2"><button onclick="renameFile(event, '${id}')" class="text-gray-400 hover:text-blue-500 p-2"><i class="fas fa-edit"></i></button><button onclick="deleteFile(event, '${id}')" class="text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></div>`;
+                listEl.appendChild(div);
+            });
+        }
 
         // --- UI ACTIONS ---
         function toggleMenu() { 
@@ -467,11 +444,14 @@
         }
         
         function handleAction(fn) { fn(); if(fn!==addSubjectRow) toggleMenu(); }
+        function openFileModal() { renderFileList(); document.getElementById('file-modal').classList.remove('hidden'); setTimeout(()=>document.getElementById('file-modal').classList.remove('opacity-0'),10); }
         function closeFileModal() { document.getElementById('file-modal').classList.add('opacity-0'); setTimeout(()=>document.getElementById('file-modal').classList.add('hidden'),300); }
+        
         function setActive(el) { document.querySelectorAll('.active-edit').forEach(e=>e.classList.remove('active-edit')); el.classList.add('active-edit'); currentElement = el; }
         function changeSize(c) { if(!currentElement) return alert("Select text first"); const s = parseFloat(window.getComputedStyle(currentElement).fontSize); currentElement.style.fontSize = (s+c)+'px'; saveCurrentDoc(); autoResize(currentElement); }
         function setTextAlign(align) { if(!currentElement) return alert("Select text first"); currentElement.style.textAlign = align; saveCurrentDoc(); }
         function changeColor(color) { if(currentElement) { currentElement.style.color = color; saveCurrentDoc(); } }
+        
         function checkLanguage(el) { if(/[\u0600-\u06FF]/.test(el.value)) { el.classList.add('urdu-text'); if(el.style.textTransform==='uppercase') { el.dataset.upper='true'; el.style.textTransform='none'; } } else { el.classList.remove('urdu-text'); if(el.dataset.upper) el.style.textTransform='uppercase'; } }
         function handleInput(el) { checkLanguage(el); saveCurrentDoc(); }
         function updateLogo(i) { if(i.files[0]) { const r=new FileReader(); r.onload=e=>{ document.getElementById('school-logo').src=e.target.result; document.getElementById('school-logo').classList.remove('hidden'); document.getElementById('logo-placeholder').classList.add('hidden'); saveCurrentDoc(); }; r.readAsDataURL(i.files[0]); } }
