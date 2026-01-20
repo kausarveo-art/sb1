@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Syllabus Maker - Offline Permanent</title>
+    <title>School Syllabus Maker - GitHub Cloud</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -43,13 +43,13 @@
 <body>
 
     <!-- LEFT SIDE: Saved Files Button -->
-    <button onclick="openFileModal()" class="fixed top-6 left-6 z-50 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-5 rounded-lg shadow-lg transition flex items-center gap-2 no-print group">
-        <i class="fas fa-folder-open group-hover:scale-110 transition-transform"></i> Saved Files
+    <button onclick="openFileModal()" class="fixed top-6 left-6 z-50 bg-gray-900 hover:bg-black text-white font-medium py-2.5 px-5 rounded-lg shadow-lg transition flex items-center gap-2 no-print group">
+        <i class="fab fa-github group-hover:scale-110 transition-transform"></i> Cloud Files
     </button>
     
     <!-- Sync Status Badge -->
-    <div id="sync-status" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white border border-yellow-200 text-yellow-700 px-4 py-2 rounded-full shadow-md text-xs font-semibold flex items-center gap-2 no-print cursor-pointer" onclick="openFileModal()" title="Click to Link File">
-        <i class="fas fa-exclamation-circle"></i> <span>Not Linked (Temporary)</span>
+    <div id="sync-status" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white border border-gray-200 px-4 py-2 rounded-full shadow-md text-xs font-semibold flex items-center gap-2 hidden no-print cursor-pointer" onclick="openFileModal()">
+        <i class="fas fa-cloud"></i> <span>Local Only</span>
     </div>
 
     <!-- RIGHT SIDE: Settings Toggle -->
@@ -83,33 +83,34 @@
             
             <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-800">File Manager</h2>
-                    <p class="text-sm text-gray-500">Local & Permanent Storage</p>
+                    <h2 class="text-2xl font-bold text-gray-800">Cloud Manager</h2>
+                    <p class="text-sm text-gray-500">Sync Data with GitHub</p>
                 </div>
                 <button onclick="closeFileModal()" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition"><i class="fas fa-times text-xl"></i></button>
             </div>
 
-            <!-- PERMANENT STORAGE SETUP -->
-            <div class="mb-4 bg-green-50 border border-green-200 rounded-lg p-4 shadow-sm">
+            <!-- GITHUB SETUP -->
+            <div class="mb-4 bg-gray-900 text-white rounded-lg p-4 shadow-sm">
                 <div class="flex flex-col gap-2">
-                    <div class="flex items-center gap-2 text-green-800 font-bold text-sm">
-                        <i class="fas fa-hdd"></i>
-                        <span>Permanent Folder Setup</span>
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2 font-bold text-sm">
+                            <i class="fab fa-github"></i>
+                            <span>GitHub Sync Setup</span>
+                        </div>
+                        <button onclick="toggleGithubConfig()" class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded">Edit Config</button>
                     </div>
-                    <p class="text-xs text-green-700">
-                        Select a location (e.g., D: Drive) to create a permanent database file. All your work will be saved inside it automatically.
-                    </p>
                     
-                    <div class="flex gap-2 mt-2">
-                        <button onclick="createPermanentFile()" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-2 px-3 rounded shadow transition flex items-center justify-center gap-2">
-                            <i class="fas fa-plus-circle"></i> Create New File
-                        </button>
-                        <button onclick="openPermanentFile()" class="flex-1 bg-white border border-green-600 text-green-700 hover:bg-green-50 text-xs py-2 px-3 rounded shadow transition flex items-center justify-center gap-2">
-                            <i class="fas fa-folder-open"></i> Open Existing File
-                        </button>
+                    <div id="github-config" class="hidden space-y-2 mt-2 bg-gray-800 p-2 rounded border border-gray-700">
+                        <input type="text" id="gh-username" placeholder="GitHub Username" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
+                        <input type="text" id="gh-repo" placeholder="Repository Name" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
+                        <input type="text" id="gh-token" placeholder="Personal Access Token (ghp_...)" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
+                        <input type="text" id="gh-filename" value="syllabus_data.json" placeholder="File Name (e.g. data.json)" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
+                        <button onclick="saveGithubConfig()" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-1 rounded font-bold">Connect & Sync</button>
+                        <p class="text-[9px] text-gray-400">Token needs 'repo' scope. Don't share this URL with others after saving.</p>
                     </div>
-                    <div id="file-path-display" class="hidden mt-1 text-[10px] text-gray-500 font-mono bg-white p-1 rounded border border-gray-200 text-center">
-                        <!-- File name goes here -->
+
+                    <div id="github-status" class="text-xs text-gray-300 mt-1 flex items-center gap-2">
+                        <i class="fas fa-circle text-red-500 text-[8px]"></i> Not Connected
                     </div>
                 </div>
             </div>
@@ -118,7 +119,7 @@
 
             <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
                 <button onclick="closeFileModal()" class="px-4 py-2 text-gray-500 hover:text-gray-700 font-medium text-sm">Close</button>
-                <button onclick="createNewFile()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-bold shadow-md hover:shadow-lg transition flex items-center gap-2"><i class="fas fa-plus"></i> Create New Page</button>
+                <button onclick="createNewFile()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-bold shadow-md hover:shadow-lg transition flex items-center gap-2"><i class="fas fa-plus"></i> Create New</button>
             </div>
         </div>
     </div>
@@ -166,121 +167,166 @@
     </div>
 
     <script>
-        // --- DATA MANAGEMENT ---
+        // --- DATA ---
         let currentDocId = null;
         let allDocs = {};
-        let fileHandle = null; // The Magic Handle
+
+        // --- GITHUB CONFIG ---
+        let GH_USER = localStorage.getItem('gh_user') || '';
+        let GH_REPO = localStorage.getItem('gh_repo') || '';
+        let GH_TOKEN = localStorage.getItem('gh_token') || '';
+        let GH_FILE = localStorage.getItem('gh_file') || 'syllabus_data.json';
+        let ghFileSha = null;
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Load from LocalStorage first (for speed)
+            // Fill inputs if saved
+            document.getElementById('gh-username').value = GH_USER;
+            document.getElementById('gh-repo').value = GH_REPO;
+            document.getElementById('gh-token').value = GH_TOKEN;
+            document.getElementById('gh-filename').value = GH_FILE;
+
+            // Load Local first
             const stored = localStorage.getItem('school_syllabus_data');
             if (stored) {
                 allDocs = JSON.parse(stored);
-                // Load most recent
-                const sortedIds = Object.keys(allDocs).sort((a,b) => allDocs[b].timestamp - allDocs[a].timestamp);
-                if (sortedIds.length > 0) loadDoc(sortedIds[0]);
-                else createNewFile(true);
+                loadMostRecent();
             } else {
                 createNewFile(true);
             }
+
+            // Try Sync if config exists
+            if(GH_USER && GH_REPO && GH_TOKEN) {
+                syncWithGithub(false); // false = don't overwrite local immediately if local is newer (simple merge)
+                document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-green-500 text-[8px]"></i> Connected';
+            } else {
+                 document.getElementById('github-config').classList.remove('hidden');
+            }
         });
 
-        // --- FILE SYSTEM ACCESS API (The "Permanent" Part) ---
-
-        // 1. Create a NEW file on D: drive
-        async function createPermanentFile() {
-            if (!('showSaveFilePicker' in window)) {
-                alert("Browser not supported. Please use Chrome/Edge on Desktop.");
-                return;
-            }
-            try {
-                const options = {
-                    suggestedName: 'My_Syllabus_Database.json',
-                    types: [{ description: 'JSON Database', accept: { 'application/json': ['.json'] } }],
-                };
-                fileHandle = await window.showSaveFilePicker(options);
-                
-                // Immediately save current data to it
-                await saveToFileSystem();
-                
-                updateUIForLinkedFile();
-                alert("File Linked Successfully!\n\nNow all your changes will be saved to this file automatically.\n\nKeep this file safe (e.g., in D: Drive).");
-            } catch (err) {
-                console.log("User cancelled save");
-            }
+        // --- GITHUB LOGIC ---
+        function toggleGithubConfig() {
+            document.getElementById('github-config').classList.toggle('hidden');
         }
 
-        // 2. Open EXISTING file (e.g. after Windows reinstall)
-        async function openPermanentFile() {
-             if (!('showOpenFilePicker' in window)) {
-                alert("Browser not supported. Please use Chrome/Edge on Desktop.");
+        async function saveGithubConfig() {
+            GH_USER = document.getElementById('gh-username').value.trim();
+            GH_REPO = document.getElementById('gh-repo').value.trim();
+            GH_TOKEN = document.getElementById('gh-token').value.trim();
+            GH_FILE = document.getElementById('gh-filename').value.trim();
+
+            if(!GH_USER || !GH_REPO || !GH_TOKEN) {
+                alert("Please fill all fields!");
                 return;
             }
-            try {
-                const [handle] = await window.showOpenFilePicker({
-                    types: [{ description: 'JSON Database', accept: { 'application/json': ['.json'] } }],
-                    multiple: false
-                });
-                fileHandle = handle;
-                
-                // Read content
-                const file = await fileHandle.getFile();
-                const contents = await file.text();
-                
-                try {
-                    const importedDocs = JSON.parse(contents);
-                    allDocs = importedDocs; // Overwrite or Merge? Let's Overwrite for "Restore" feel
-                    
-                    // Also update LocalStorage so it's fast next time
-                    localStorage.setItem('school_syllabus_data', JSON.stringify(allDocs));
-                    
-                    renderFileList();
-                    const sortedIds = Object.keys(allDocs).sort((a,b) => allDocs[b].timestamp - allDocs[a].timestamp);
-                    if (sortedIds.length > 0) loadDoc(sortedIds[0]);
-                    
-                    updateUIForLinkedFile();
-                    alert("Data Restored Successfully!");
-                } catch (e) {
-                    alert("Error: The selected file is empty or corrupted.");
-                }
 
-            } catch (err) {
-                console.log("User cancelled open");
-            }
+            localStorage.setItem('gh_user', GH_USER);
+            localStorage.setItem('gh_repo', GH_REPO);
+            localStorage.setItem('gh_token', GH_TOKEN);
+            localStorage.setItem('gh_file', GH_FILE);
+
+            document.getElementById('github-config').classList.add('hidden');
+            document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-yellow-500 text-[8px]"></i> Connecting...';
+            
+            await syncWithGithub(true); // true = force fetch first
         }
 
-        // 3. Save Logic
-        async function saveToFileSystem() {
-            if (!fileHandle) return;
-
-            updateStatus("Saving to PC...", "syncing");
+        async function syncWithGithub(forceFetch = false) {
+            updateStatus("Syncing GitHub...", "syncing");
+            const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${GH_FILE}`;
             
             try {
-                // Create a writable stream to the file
-                const writable = await fileHandle.createWritable();
-                // Write the JSON
-                await writable.write(JSON.stringify(allDocs, null, 2));
-                // Close the file
-                await writable.close();
-                
-                updateStatus("Saved to PC", "success");
-            } catch (err) {
-                console.error(err);
-                updateStatus("Permission Lost - Re-link File", "error");
+                // 1. GET existing file to get SHA and Content
+                const response = await fetch(url, {
+                    headers: { 
+                        'Authorization': `token ${GH_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (response.status === 200) {
+                    const data = await response.json();
+                    ghFileSha = data.sha;
+                    
+                    // Decode content (GitHub sends base64)
+                    try {
+                        // Fix for UTF-8 characters
+                        const serverContent = decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, ""))));
+                        const serverDocs = JSON.parse(serverContent);
+                        
+                        // Simple Merge Strategy: 
+                        // If forceFetch (Initial Connect), we trust Server.
+                        // Otherwise, we merge, trusting local for current edits.
+                        if (forceFetch) {
+                            allDocs = serverDocs;
+                            localStorage.setItem('school_syllabus_data', JSON.stringify(allDocs));
+                            loadMostRecent();
+                            renderFileList();
+                            updateStatus("Loaded from GitHub", "success");
+                            document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-green-500 text-[8px]"></i> Connected';
+                        }
+                    } catch(e) { console.error("Parse Error", e); }
+
+                } else if (response.status === 404) {
+                    // File doesn't exist, we will create it on first save
+                    console.log("File not found on GitHub, will create.");
+                    document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-green-500 text-[8px]"></i> Ready to Create';
+                } else {
+                    throw new Error("GitHub Error: " + response.status);
+                }
+
+            } catch (error) {
+                console.error(error);
+                updateStatus("GitHub Error", "error");
+                document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-red-500 text-[8px]"></i> Error';
             }
         }
 
-        // --- UI HELPERS ---
-        function updateUIForLinkedFile() {
-            if(fileHandle) {
-                document.getElementById('file-path-display').textContent = "Linked: " + fileHandle.name;
-                document.getElementById('file-path-display').classList.remove('hidden');
-                updateStatus("Linked: " + fileHandle.name, "success");
+        async function pushToGithub() {
+            if(!GH_TOKEN) return;
+            updateStatus("Pushing to GitHub...", "syncing");
+
+            const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${GH_FILE}`;
+            
+            // Encode content to Base64 safely (handling Urdu/UTF-8)
+            const contentStr = JSON.stringify(allDocs, null, 2);
+            const contentBase64 = window.btoa(unescape(encodeURIComponent(contentStr)));
+
+            const bodyData = {
+                message: "Auto-save syllabus data",
+                content: contentBase64
+            };
+            if (ghFileSha) {
+                bodyData.sha = ghFileSha;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${GH_TOKEN}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(bodyData)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    ghFileSha = data.content.sha; // Update SHA for next push
+                    updateStatus("Saved to GitHub", "success");
+                } else {
+                    // If conflict (409), we might need to fetch fresh SHA. 
+                    // For simplicity, we just notify error here.
+                    updateStatus("Push Failed", "error");
+                }
+            } catch (error) {
+                console.error(error);
+                updateStatus("Network Error", "error");
             }
         }
 
         function updateStatus(msg, type) {
             const el = document.getElementById('sync-status');
+            el.classList.remove('hidden');
             const icon = el.querySelector('i');
             const span = el.querySelector('span');
             span.textContent = msg;
@@ -297,22 +343,23 @@
                 el.classList.add('border-red-200', 'text-red-700');
                 icon.className = 'fas fa-exclamation-triangle';
             } else {
-                // default warning
                 el.classList.add('border-yellow-200', 'text-yellow-700');
                 icon.className = 'fas fa-exclamation-circle';
             }
         }
 
-        // --- STANDARD APP LOGIC (Same as before) ---
+        // --- CORE APP LOGIC ---
+        function loadMostRecent() {
+            const sortedIds = Object.keys(allDocs).sort((a,b) => allDocs[b].timestamp - allDocs[a].timestamp);
+            if (sortedIds.length > 0) loadDoc(sortedIds[0]);
+            else createNewFile(true);
+        }
+
         function saveAllDocs() {
-            // 1. Save to LocalStorage (Immediate)
             localStorage.setItem('school_syllabus_data', JSON.stringify(allDocs));
             renderFileList();
-            
-            // 2. Save to File System (If linked)
-            if(fileHandle) {
-                saveToFileSystem();
-            }
+            // Trigger Cloud Save (Debounced ideally, but direct for now)
+            if(GH_TOKEN) pushToGithub();
         }
 
         function generateId() { return 'doc_' + Date.now(); }
@@ -368,7 +415,7 @@
             const logoImg = document.getElementById('school-logo');
             if (logoImg.classList.contains('hidden')) docData.logoSrc = ""; 
             allDocs[currentDocId] = docData;
-            saveAllDocs(); // This triggers saveToFileSystem
+            saveAllDocs();
         }
 
         function loadDoc(id) {
@@ -439,7 +486,7 @@
             });
         }
 
-        // Helpers
+        // Helper
         function toggleMenu() { document.getElementById('action-menu').classList.toggle('menu-hidden'); }
         function handleAction(fn) { fn(); if(fn!==addSubjectRow) toggleMenu(); }
         function openFileModal() { renderFileList(); document.getElementById('file-modal').classList.remove('hidden'); setTimeout(()=>document.getElementById('file-modal').classList.remove('opacity-0'),10); }
