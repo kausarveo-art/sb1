@@ -172,10 +172,10 @@
         let allDocs = {};
 
         // --- GITHUB CONFIG ---
-        // Updated with your credentials
+        // REPLACE WITH YOUR NEW TOKEN HERE
         let GH_USER = localStorage.getItem('gh_user') || 'kausarveo-art';
         let GH_REPO = localStorage.getItem('gh_repo') || 'sb1';
-        let GH_TOKEN = localStorage.getItem('gh_token') || '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';
+        let GH_TOKEN = localStorage.getItem('gh_token') || 'YOUR_NEW_TOKEN_HERE'; 
         let GH_FILE = localStorage.getItem('gh_file') || 'syllabus_data.json';
         let ghFileSha = null;
 
@@ -196,8 +196,8 @@
             }
 
             // Try Sync if config exists
-            if(GH_USER && GH_REPO && GH_TOKEN) {
-                syncWithGithub(false); // false = don't overwrite local immediately if local is newer (simple merge)
+            if(GH_USER && GH_REPO && GH_TOKEN && GH_TOKEN !== 'YOUR_NEW_TOKEN_HERE') {
+                syncWithGithub(false);
                 document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-green-500 text-[8px]"></i> Connected';
             } else {
                  document.getElementById('github-config').classList.remove('hidden');
@@ -248,15 +248,11 @@
                     const data = await response.json();
                     ghFileSha = data.sha;
                     
-                    // Decode content (GitHub sends base64)
+                    // Decode content
                     try {
-                        // Fix for UTF-8 characters
                         const serverContent = decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, ""))));
                         const serverDocs = JSON.parse(serverContent);
                         
-                        // Simple Merge Strategy: 
-                        // If forceFetch (Initial Connect), we trust Server.
-                        // Otherwise, we merge, trusting local for current edits.
                         if (forceFetch) {
                             allDocs = serverDocs;
                             localStorage.setItem('school_syllabus_data', JSON.stringify(allDocs));
@@ -268,11 +264,15 @@
                     } catch(e) { console.error("Parse Error", e); }
 
                 } else if (response.status === 404) {
-                    // File doesn't exist, we will create it on first save
                     console.log("File not found on GitHub, will create.");
                     document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-green-500 text-[8px]"></i> Ready to Create';
+                } else if (response.status === 401) {
+                    alert("GitHub Auth Error: Bad Credentials.\nYour Token might be expired or revoked.");
+                    updateStatus("Auth Error", "error");
                 } else {
-                    throw new Error("GitHub Error: " + response.status);
+                    const errData = await response.json();
+                    alert("GitHub Error: " + (errData.message || response.status));
+                    throw new Error("GitHub Error");
                 }
 
             } catch (error) {
@@ -283,12 +283,11 @@
         }
 
         async function pushToGithub() {
-            if(!GH_TOKEN) return;
+            if(!GH_TOKEN || GH_TOKEN === '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') return;
             updateStatus("Pushing to GitHub...", "syncing");
 
             const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${GH_FILE}`;
             
-            // Encode content to Base64 safely (handling Urdu/UTF-8)
             const contentStr = JSON.stringify(allDocs, null, 2);
             const contentBase64 = window.btoa(unescape(encodeURIComponent(contentStr)));
 
@@ -312,12 +311,21 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    ghFileSha = data.content.sha; // Update SHA for next push
+                    ghFileSha = data.content.sha;
                     updateStatus("Saved to GitHub", "success");
                 } else {
-                    // If conflict (409), we might need to fetch fresh SHA. 
-                    // For simplicity, we just notify error here.
-                    updateStatus("Push Failed", "error");
+                    const errorData = await response.json();
+                    if(response.status === 409) {
+                        // Conflict: File changed on server. Re-fetch SHA and try again silently?
+                        // For now, let's just alert.
+                        console.warn("Conflict detected. Re-syncing...");
+                        await syncWithGithub(false); // Get new SHA
+                        // Retry push? Dangerous loop. Let user trigger next save.
+                        updateStatus("Conflict - Retrying...", "error");
+                    } else {
+                        alert("Push Failed: " + (errorData.message || response.status));
+                        updateStatus("Push Failed", "error");
+                    }
                 }
             } catch (error) {
                 console.error(error);
@@ -360,7 +368,7 @@
             localStorage.setItem('school_syllabus_data', JSON.stringify(allDocs));
             renderFileList();
             // Trigger Cloud Save (Debounced ideally, but direct for now)
-            if(GH_TOKEN) pushToGithub();
+            if(GH_TOKEN && GH_TOKEN !== 'YOUR_NEW_TOKEN_HERE') pushToGithub();
         }
 
         function generateId() { return 'doc_' + Date.now(); }
