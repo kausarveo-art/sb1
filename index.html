@@ -101,7 +101,6 @@
                     </div>
                     
                     <div id="github-config" class="hidden space-y-2 mt-2 bg-gray-800 p-2 rounded border border-gray-700">
-                        <!-- Pre-filled Values -->
                         <div class="grid grid-cols-1 gap-2">
                             <div>
                                 <label class="text-[10px] text-gray-400">Username</label>
@@ -116,13 +115,12 @@
                                 <input type="text" id="gh-filename" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white">
                             </div>
                             <div>
-                                <label class="text-[10px] text-yellow-400">Personal Access Token (Required)</label>
+                                <label class="text-[10px] text-yellow-400">Personal Access Token</label>
                                 <input type="text" id="gh-token" placeholder="Paste your new token here..." class="bg-gray-900 border border-yellow-600 rounded px-2 py-1 text-xs w-full text-white placeholder-gray-500">
                             </div>
                         </div>
                         
                         <button onclick="saveGithubConfig()" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded font-bold mt-2">Connect & Sync</button>
-                        <p class="text-[9px] text-gray-400">Token needs 'repo' scope. Don't share this URL with others after saving.</p>
                     </div>
 
                     <div id="github-status" class="text-xs text-gray-300 mt-1 flex items-center gap-2">
@@ -186,13 +184,13 @@
         // --- DATA ---
         let currentDocId = null;
         let allDocs = {};
+        let saveTimeout; // For Debouncing
 
-        // --- GITHUB CONFIG (PRE-FILLED) ---
+        // --- GITHUB CONFIG ---
         let GH_USER = localStorage.getItem('gh_user') || 'kausarveo-art';
         let GH_REPO = localStorage.getItem('gh_repo') || 'sb1';
         let GH_FILE = localStorage.getItem('gh_file') || 'syllabus_data.json';
-        let GH_TOKEN = localStorage.getItem('gh_token') || ''; // Empty as requested
-        
+        let GH_TOKEN = localStorage.getItem('gh_token') || ''; 
         let ghFileSha = null;
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -211,7 +209,7 @@
                 createNewFile(true);
             }
 
-            // If token is already present (from localStorage), try sync
+            // Sync if connected
             if(GH_TOKEN && GH_TOKEN.trim() !== '') {
                 syncWithGithub(false);
                 document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-green-500 text-[8px]"></i> Connected';
@@ -244,11 +242,11 @@
             document.getElementById('github-config').classList.add('hidden');
             document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-yellow-500 text-[8px]"></i> Connecting...';
             
-            await syncWithGithub(true); // true = force fetch first
+            await syncWithGithub(true);
         }
 
         async function syncWithGithub(forceFetch = false) {
-            updateStatus("Syncing GitHub...", "syncing");
+            updateStatus("Checking GitHub...", "syncing");
             const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${GH_FILE}`;
             
             try {
@@ -274,31 +272,29 @@
                             renderFileList();
                             updateStatus("Loaded from GitHub", "success");
                             document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-green-500 text-[8px]"></i> Connected';
+                        } else {
+                            updateStatus("Ready (Synced)", "success");
                         }
                     } catch(e) { console.error("Parse Error", e); }
 
                 } else if (response.status === 404) {
-                    console.log("File not found on GitHub, will create.");
                     document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-green-500 text-[8px]"></i> Ready to Create';
+                    updateStatus("Ready (Local)", "success");
                 } else if (response.status === 401) {
-                    alert("GitHub Auth Error: Bad Credentials.\nYour Token might be expired or revoked.");
                     updateStatus("Auth Error", "error");
                 } else {
-                    const errData = await response.json();
-                    alert("GitHub Error: " + (errData.message || response.status));
                     throw new Error("GitHub Error");
                 }
 
             } catch (error) {
                 console.error(error);
-                updateStatus("GitHub Error", "error");
-                document.getElementById('github-status').innerHTML = '<i class="fas fa-circle text-red-500 text-[8px]"></i> Error';
+                updateStatus("Connection Error", "error");
             }
         }
 
-        async function pushToGithub() {
+        async function pushToGithub(retry = true) {
             if(!GH_TOKEN) return;
-            updateStatus("Pushing to GitHub...", "syncing");
+            updateStatus("Saving to GitHub...", "syncing");
 
             const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${GH_FILE}`;
             
@@ -328,20 +324,37 @@
                     ghFileSha = data.content.sha;
                     updateStatus("Saved to GitHub", "success");
                 } else {
-                    const errorData = await response.json();
-                    if(response.status === 409) {
-                        console.warn("Conflict detected. Re-syncing...");
-                        await syncWithGithub(false); 
-                        updateStatus("Conflict - Retrying...", "error");
+                    // CONFLICT HANDLING
+                    if (response.status === 409 && retry) {
+                        console.warn("Conflict detected. Fetching latest SHA...");
+                        // Fetch latest SHA blindly without overwriting local data
+                        await getLatestSha(); 
+                        // Retry push once with new SHA
+                        pushToGithub(false);
                     } else {
-                        alert("Push Failed: " + (errorData.message || response.status));
-                        updateStatus("Push Failed", "error");
+                        updateStatus("Save Failed", "error");
                     }
                 }
             } catch (error) {
                 console.error(error);
                 updateStatus("Network Error", "error");
             }
+        }
+
+        async function getLatestSha() {
+            const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${GH_FILE}`;
+            try {
+                const response = await fetch(url, {
+                    headers: { 
+                        'Authorization': `token ${GH_TOKEN}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    ghFileSha = data.sha;
+                }
+            } catch (e) { console.error("SHA Fetch Error", e); }
         }
 
         function updateStatus(msg, type) {
@@ -376,9 +389,18 @@
         }
 
         function saveAllDocs() {
+            // 1. Instant Local Save
             localStorage.setItem('school_syllabus_data', JSON.stringify(allDocs));
             renderFileList();
-            if(GH_TOKEN && GH_TOKEN.trim() !== '') pushToGithub();
+            
+            // 2. Debounced Cloud Save (Waits 2 seconds after typing stops)
+            if(GH_TOKEN && GH_TOKEN.trim() !== '') {
+                updateStatus("Waiting to save...", "syncing");
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    pushToGithub();
+                }, 2000);
+            }
         }
 
         function generateId() { return 'doc_' + Date.now(); }
