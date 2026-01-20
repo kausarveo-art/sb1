@@ -21,5 +21,24 @@
         "color": ""
       }
     ]
+  },
+  "doc_1768912337787": {
+    "id": "doc_1768912337787",
+    "fileName": "nursery",
+    "timestamp": 1768912337787,
+    "schoolName": "SCHOOL NAME HERE",
+    "address": "An English Medium School System",
+    "title": "Winter Vacation Syllabus",
+    "className": "5th",
+    "session": "2025-26",
+    "logoSrc": "",
+    "footerLeft": "Class Teacher",
+    "footerRight": "Principal",
+    "rows": [
+      {
+        "subject": "English",
+        "details": "Unit 1 & 2."
+      }
+    ]
   }
 }
