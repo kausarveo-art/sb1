@@ -2,7 +2,7 @@
   "doc_1768907986307": {
     "id": "doc_1768907986307",
     "fileName": "Class Prep",
-    "timestamp": 1768908092660,
+    "timestamp": 1768908142402,
     "schoolName": "SCHOOL NAME HERE",
     "address": "An English Medium School System",
     "title": "Winter Vacation Syllabus",
@@ -11,15 +11,6 @@
     "logoSrc": "",
     "footerLeft": "Class Teacher",
     "footerRight": "Principal",
-    "rows": [
-      {
-        "subject": "English",
-        "details": "Unit 1 & 2.",
-        "isUrdu": false,
-        "textAlign": "left",
-        "fontSize": "",
-        "color": ""
-      }
-    ]
+    "rows": []
   }
 }
