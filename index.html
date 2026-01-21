@@ -209,8 +209,15 @@
                         <input type="password" id="ghToken" placeholder="Personal Access Token" class="w-full p-2 text-sm border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-black outline-none">
                     </div>
                     <div>
-                        <input type="text" id="ghFilename" placeholder="File Name (e.g. syllabus.json)" class="w-full p-2 text-sm border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-black outline-none">
+                        <!-- Updated: Default value added -->
+                        <input type="text" id="ghFilename" value="SB.json" placeholder="File Name (e.g. syllabus.json)" class="w-full p-2 text-sm border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-black outline-none">
                     </div>
+                    
+                    <!-- Updated: Save Details Button -->
+                    <button onclick="saveGitHubDetails()" class="w-full bg-gray-800 text-white p-2 rounded text-xs hover:bg-gray-900 transition flex items-center justify-center gap-1 mt-2">
+                        <i class="fas fa-save"></i> Save Details
+                    </button>
+                    
                     <p class="text-[10px] text-gray-400 italic">Credentials are stored locally in your browser.</p>
                 </div>
             </div>
@@ -316,11 +323,13 @@
                     <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Realtime Status</p>
                 </div>
                 
-                <!-- New Realtime Status Indicator -->
+                <!-- Realtime Status Indicator -->
                 <div id="syncStatus" class="w-full text-xs text-center p-2 rounded border border-gray-200 bg-gray-50 text-gray-400 italic transition-all duration-300 flex items-center justify-center gap-2">
                     <span id="syncIcon"><i class="fas fa-check-circle"></i></span>
                     <span id="syncText">Ready</span>
                 </div>
+                <!-- Updated: Active Filename Display -->
+                <div id="activeFilenameDisplay" class="text-[10px] text-center text-gray-500 mt-1 truncate px-2 font-mono"></div>
                 
                 <!-- Recent Files List -->
                 <div id="recentFilesList" class="space-y-1 max-h-32 overflow-y-auto pr-1 bg-gray-50 p-2 rounded-lg border border-gray-100 mt-2">
@@ -443,6 +452,22 @@
             chevron.style.transform = settings.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
         }
 
+        // Updated: Save GitHub Details Function
+        function saveGitHubDetails() {
+            const username = document.getElementById('ghUsername').value.trim();
+            const repo = document.getElementById('ghRepo').value.trim();
+            const token = document.getElementById('ghToken').value.trim();
+            const filename = document.getElementById('ghFilename').value.trim();
+            
+            if(!username || !repo) {
+                alert("Username and Repo Name are required.");
+                return;
+            }
+            
+            localStorage.setItem('sb_gh_creds', JSON.stringify({username, repo, token, filename}));
+            alert("GitHub Details Saved Successfully!");
+        }
+
         // Load saved GH creds on startup
         window.addEventListener('load', () => {
             const creds = JSON.parse(localStorage.getItem('sb_gh_creds') || '{}');
@@ -540,6 +565,9 @@
                 // Start observing changes
                 initAutoSave();
                 updateSyncStatus('loaded');
+                
+                // Show filename in status
+                document.getElementById('activeFilenameDisplay').innerText = "File: " + currentFilename;
 
             } catch(e) {
                 alert("Error loading file: " + e.message);
@@ -570,7 +598,11 @@
                 initAutoSave();
             } else {
                 isGitHubConnected = false;
+                currentFilename = "Local Draft";
             }
+
+            // Show Project Name in status (Updated as requested)
+            document.getElementById('activeFilenameDisplay').innerText = docName;
 
             // Hide Modal, Show App
             document.getElementById('startupModal').style.display = 'none';
