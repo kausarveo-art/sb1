@@ -2,499 +2,847 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SB School Syllabus Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Syllabus - Winter 2025</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter, Noto Nastaliq Urdu, and others -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@300;400;500;600&family=Montserrat:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Oswald:wght@500&family=Playfair+Display:wght@600&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- html2pdf Library for Download PDF feature -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        body { background-color: #f3f4f6; font-family: 'Inter', sans-serif; color: #334155; padding-top: 70px; }
-        
-        .a4-paper { 
-            background: white; width: 100%; max-width: 210mm; min-height: 297mm; 
-            margin: 20px auto; padding: 20mm; 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); position: relative; 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f0f0;
+            color: #111;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        @media (max-width: 768px) {
-            .a4-paper { padding: 10mm; width: 95%; margin: 10px auto; min-height: auto; }
-            body { padding-top: 60px; padding-bottom: 80px; }
+        .paper {
+            background: white;
+            /* Default A4 Dimensions */
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 20mm;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            transition: width 0.3s, min-height 0.3s;
         }
-        
-        input, textarea { width: 100%; padding: 4px 0; border: 1px solid transparent; transition: all 0.2s; background: transparent; resize: none; font-family: inherit; }
-        input:hover, textarea:hover { border-bottom: 1px solid #e2e8f0; }
-        input:focus, textarea:focus { outline: none; border-bottom: 1px solid #94a3b8; background: transparent; }
-        
-        textarea { overflow: hidden; min-height: 2rem; }
 
-        .active-edit { background-color: #eff6ff; border-radius: 4px; outline: 1px dashed #3b82f6; }
-        .urdu-text { font-family: 'Jameel Noori Nastaleeq', 'Jameel Noori Nastaliq', 'Noto Nastaliq Urdu', serif; direction: rtl; text-align: right; line-height: 2.0; }
+        /* Minimalist Editable Fields */
+        .editable {
+            outline: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s ease;
+            cursor: text;
+            min-width: 20px;
+        }
+        .editable:hover {
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .editable:focus {
+            border-bottom: 1px solid #000;
+            background-color: #fafafa;
+        }
+        /* Visual cue for selected text */
+        .editable.active-edit {
+            background-color: #eef2ff; /* Light blue highlight */
+            border-bottom: 1px dashed #6366f1;
+        }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
-        th { text-align: left; padding: 8px 8px; border-bottom: 2px solid #e2e8f0; vertical-align: bottom; }
-        td { padding: 16px 8px; vertical-align: top; border-bottom: 1px solid #f1f5f9; }
+        /* Minimalist Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+        }
+        th {
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #888;
+            padding: 12px 8px;
+            border-bottom: 2px solid #f0f0f0;
+            font-weight: 600;
+        }
+        td {
+            padding: 16px 8px;
+            border-bottom: 1px solid #f5f5f5;
+            vertical-align: top;
+            color: #333;
+            line-height: 1.6;
+        }
 
-        /* Menu Animation */
-        .menu-hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
-        .menu-visible { transform: translateX(0); opacity: 1; pointer-events: auto; }
-        #action-menu { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Startup Modal Styling */
+        #startupModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f8fafc;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-        .file-item { cursor: pointer; padding: 12px; border-radius: 8px; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc; border: 1px solid #e2e8f0; transition: all 0.2s; }
-        .file-item:hover { background-color: #f1f5f9; border-color: #cbd5e1; transform: translateY(-1px); }
-        .file-item.active { background-color: #eff6ff; border-color: #60a5fa; color: #1d4ed8; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-
-        #welcome-screen { transition: opacity 0.3s ease-out; }
-        .fade-out { opacity: 0; pointer-events: none; }
-
+        /* Print Logic - Critical Updates */
         @media print {
-            body { background: white; margin: 0; padding: 0; }
-            .a4-paper { box-shadow: none; margin: 0; width: 100%; padding: 15mm; max-width: none; }
-            .no-print, #navbar, #welcome-screen, #action-menu-backdrop { display: none !important; }
-            .active-edit { background: transparent !important; outline: none; }
+            body {
+                background: white;
+                height: auto;
+                overflow: visible;
+            }
+            #startupModal {
+                display: none !important;
+            }
+            .main-layout {
+                display: block !important;
+            }
+            .sidebar-panel {
+                display: none !important;
+            }
+            .content-area {
+                padding: 0 !important;
+                background: white !important;
+                height: auto !important;
+                overflow: visible !important;
+                display: block !important;
+            }
+            .paper {
+                box-shadow: none;
+                margin: 0;
+                width: 100% !important; /* Force fit */
+                padding: 15mm;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .editable:hover, .editable.active-edit {
+                border-bottom: none;
+                background-color: transparent;
+            }
+            [placeholder]:empty:before {
+                content: "";
+            }
+            .group:hover .group-hover\:opacity-100 {
+                opacity: 0 !important;
+            }
+        }
+        
+        /* Placeholder logic */
+        [placeholder]:empty:before {
+            content: attr(placeholder);
+            color: #ccc;
+            cursor: text;
+        }
+        [placeholder]:empty:focus:before {
+            content: "";
         }
     </style>
 </head>
 <body>
 
-    <!-- WELCOME SCREEN -->
-    <div id="welcome-screen" class="fixed inset-0 z-[100] bg-gray-50 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-xl p-8 text-center border border-gray-100 mx-4">
-            <div class="mb-6">
-                <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-file-alt text-2xl text-indigo-600"></i>
+    <!-- STARTUP MODAL (Welcome Screen) -->
+    <div id="startupModal">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-[480px] max-w-full border border-gray-100 max-h-[90vh] overflow-y-auto">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-black text-white rounded-xl flex items-center justify-center text-2xl mx-auto mb-4">
+                    <i class="fas fa-school"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-gray-800">SB School Syllabus Manager</h1>
-                <p class="text-sm text-gray-500 mt-2">Create, Organize & Print School Documents</p>
+                <h2 class="text-2xl font-bold text-gray-900">SB School System</h2>
+                <p class="text-gray-500 text-sm mt-1">Create or load a document to begin</p>
             </div>
 
-            <div class="space-y-4">
-                <div class="text-left">
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Document Name</label>
-                    <input type="text" id="welcome-doc-name" placeholder="e.g. Class 5 Winter Task" class="w-full border border-gray-300 rounded-lg px-4 py-3 text-gray-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition" onkeypress="handleEnter(event)">
+            <!-- Document Name Input -->
+            <div class="mb-4">
+                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Project Name</label>
+                <input type="text" id="startDocName" placeholder="e.g. Winter Syllabus 2025" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
+            </div>
+
+            <!-- Create Button -->
+            <button onclick="startApplication()" class="w-full bg-black text-white py-3.5 rounded-xl font-semibold shadow-lg hover:bg-gray-800 transform hover:-translate-y-0.5 transition duration-200 flex items-center justify-center gap-2 mb-6">
+                Create Document <i class="fas fa-plus"></i>
+            </button>
+
+            <!-- Load from GitHub Section -->
+            <div class="mb-6 border-t pt-6">
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 text-center">OR Load Saved File</p>
+                
+                <button onclick="fetchGitHubFiles()" id="btnFetchFiles" class="w-full bg-white text-gray-700 border border-gray-200 py-3 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-300 transition flex items-center justify-center gap-2 shadow-sm">
+                    <i class="fab fa-github"></i> Load from GitHub
+                </button>
+
+                <!-- File List Container -->
+                <div id="githubFilesList" class="hidden mt-3 space-y-2 bg-gray-50 p-2 rounded-lg border border-gray-100 max-h-40 overflow-y-auto">
+                    <!-- Files will be injected here -->
+                </div>
+            </div>
+
+            <!-- GitHub Integration Accordion (Moved Bottom) -->
+            <div class="border rounded-lg overflow-hidden">
+                <button onclick="toggleGitHubSettings()" class="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 transition text-left">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-cog text-gray-400"></i>
+                        <span class="text-sm font-medium text-gray-500">GitHub Settings</span>
+                    </div>
+                    <i id="ghChevron" class="fas fa-chevron-down text-gray-400 text-xs transition-transform"></i>
+                </button>
+                
+                <div id="ghSettings" class="hidden p-4 bg-white space-y-3 border-t">
+                    <div>
+                        <input type="text" id="ghUsername" value="kausarveo-art" placeholder="GitHub Username" class="w-full p-2 text-sm border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-black outline-none">
+                    </div>
+                    <div>
+                        <input type="text" id="ghRepo" value="sb1" placeholder="Repository Name" class="w-full p-2 text-sm border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-black outline-none">
+                    </div>
+                    <div>
+                        <input type="password" id="ghToken" placeholder="Personal Access Token" class="w-full p-2 text-sm border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-black outline-none">
+                    </div>
+                    <div>
+                        <input type="text" id="ghFilename" placeholder="File Name (e.g. syllabus.json)" class="w-full p-2 text-sm border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-black outline-none">
+                    </div>
+                    <p class="text-[10px] text-gray-400 italic">Credentials are stored locally in your browser.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Main Layout Wrapper: Split Screen (Initially Hidden via JS logic, styled flex) -->
+    <div id="appLayout" class="main-layout flex h-screen w-full hidden">
+        
+        <!-- SIDEBAR CONTROL PANEL (Fixed Left Side) -->
+        <div class="sidebar-panel w-72 bg-white border-r border-gray-200 shadow-lg p-5 flex flex-col gap-5 shrink-0 h-full overflow-y-auto no-print z-50">
+            
+            <!-- Updated Header Title -->
+            <div class="border-b pb-3">
+                <h3 class="font-extrabold text-gray-900 text-xl leading-tight tracking-tight">SB School</h3>
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-widest mt-1">Control Panel</p>
+            </div>
+
+            <!-- Create New Document -->
+            <div class="space-y-2">
+                <button onclick="location.reload()" class="w-full bg-indigo-600 text-white py-2.5 rounded-lg shadow-md hover:bg-indigo-700 transition flex items-center justify-center gap-2 text-sm font-medium">
+                    <i class="fas fa-home"></i> Back to Home
+                </button>
+            </div>
+
+            <!-- Text Styling Tools -->
+            <div class="space-y-2">
+                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Text Tools</p>
+                <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 space-y-3">
+                    
+                    <!-- Formatting Buttons -->
+                    <div class="flex gap-1 justify-between bg-white p-1 rounded border border-gray-200 shadow-sm">
+                        <button onmousedown="event.preventDefault(); formatText('bold')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 font-bold" title="Bold">B</button>
+                        <button onmousedown="event.preventDefault(); formatText('italic')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 italic" title="Italic">I</button>
+                        <button onmousedown="event.preventDefault(); formatText('underline')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 underline" title="Underline">U</button>
+                        <button onmousedown="event.preventDefault(); formatText('subscript')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 text-xs" title="Subscript">x₂</button>
+                        <button onmousedown="event.preventDefault(); formatText('superscript')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 text-xs" title="Superscript">x²</button>
+                    </div>
+
+                    <!-- Fonts -->
+                    <div class="space-y-1">
+                        <span class="text-xs text-gray-500">Fonts</span>
+                        <select onchange="changeFontFamily(this.value)" class="w-full p-2 border rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-black">
+                            <option value="'Inter', sans-serif">Inter (Clean)</option>
+                            <option value="'Roboto', sans-serif">Roboto (Standard)</option>
+                            <option value="'Montserrat', sans-serif">Montserrat (Modern)</option>
+                            <option value="'Playfair Display', serif">Playfair (Elegant)</option>
+                            <option value="'Oswald', sans-serif">Oswald (Bold)</option>
+                            <option value="'Great Vibes', cursive">Great Vibes (Cursive)</option>
+                            <option value="'Noto Nastaliq Urdu', serif">Noto Nastaliq (Urdu)</option>
+                        </select>
+                    </div>
+
+                    <!-- Font Size -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-500">Size</span>
+                        <div class="flex gap-1">
+                            <button onclick="changeFontSize(-1)" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Decrease Size">
+                                <i class="fas fa-minus text-xs"></i>
+                            </button>
+                            <button onclick="changeFontSize(1)" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Increase Size">
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Alignment -->
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-gray-500">Align</span>
+                        <div class="flex gap-1">
+                            <button onclick="alignText('left')" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Align Left">
+                                <i class="fas fa-align-left"></i>
+                            </button>
+                            <button onclick="alignText('center')" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Align Center">
+                                <i class="fas fa-align-center"></i>
+                            </button>
+                            <button onclick="alignText('right')" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Align Right">
+                                <i class="fas fa-align-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Settings -->
+            <div class="space-y-2">
+                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Page Size</p>
+                <div class="relative">
+                    <i class="fas fa-file-alt absolute left-3 top-3 text-gray-400"></i>
+                    <select onchange="changePageSize(this.value)" class="w-full pl-9 pr-3 py-2 border rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                        <option value="a4">A4 (Standard)</option>
+                        <option value="letter">Letter (US)</option>
+                        <option value="legal">Legal</option>
+                        <option value="a5">A5 (Small)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Realtime Status (No buttons, just status) -->
+            <div class="space-y-2 pt-2 border-t border-gray-100">
+                <div class="flex justify-between items-center">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Realtime Status</p>
                 </div>
                 
-                <button onclick="startNewDocument()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-md hover:shadow-lg transition flex items-center justify-center gap-2">
-                    <i class="fas fa-plus-circle"></i> Create New Document
+                <!-- New Realtime Status Indicator -->
+                <div id="syncStatus" class="w-full text-xs text-center p-2 rounded border border-gray-200 bg-gray-50 text-gray-400 italic transition-all duration-300 flex items-center justify-center gap-2">
+                    <span id="syncIcon"><i class="fas fa-check-circle"></i></span>
+                    <span id="syncText">Ready</span>
+                </div>
+                
+                <!-- Recent Files List -->
+                <div id="recentFilesList" class="space-y-1 max-h-32 overflow-y-auto pr-1 bg-gray-50 p-2 rounded-lg border border-gray-100 mt-2">
+                    <p class="text-xs text-gray-400 text-center italic py-2">No saved files.</p>
+                </div>
+            </div>
+
+            <!-- Export Actions -->
+            <div class="space-y-2 mt-auto pt-4 border-t border-gray-100">
+                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Export</p>
+                
+                <button onclick="window.print()" class="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm mb-2">
+                    <i class="fas fa-print"></i> Print
+                </button>
+                
+                <button onclick="window.print()" class="w-full bg-blue-50 border border-blue-200 text-blue-700 py-2 rounded-lg hover:bg-blue-100 transition flex items-center justify-center gap-2 text-sm mb-2" title="Use Destination: Save as PDF in Print Dialog">
+                    <i class="fas fa-file-pdf"></i> Save as PDF
                 </button>
 
-                <div class="relative py-2">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
-                    <div class="relative flex justify-center"><span class="px-2 bg-white text-xs text-gray-400">OPEN</span></div>
-                </div>
-
-                <button onclick="openFileModalFromWelcome()" class="w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2">
-                    <i class="fas fa-folder-open text-gray-400"></i> Open Existing File
+                <button onclick="downloadPDF()" class="w-full bg-red-50 border border-red-200 text-red-700 py-2 rounded-lg hover:bg-red-100 transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fas fa-download"></i> Download PDF
                 </button>
             </div>
-        </div>
-    </div>
-
-    <!-- NAVBAR -->
-    <nav id="navbar" class="fixed top-0 left-0 right-0 h-[60px] bg-white border-b border-gray-200 z-40 px-4 flex items-center justify-between shadow-sm no-print">
-        <div class="flex items-center gap-3">
-            <button onclick="openFileModal()" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 hover:bg-black text-white transition shadow-lg" title="Cloud Files">
-                <i class="fab fa-github text-lg"></i>
-            </button>
-            <div id="sync-status-nav" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 border border-gray-200 text-xs font-medium text-gray-500 cursor-pointer" onclick="openFileModal()">
-                <i class="fas fa-cloud"></i> <span>Local Only</span>
-            </div>
-        </div>
-        
-        <div class="font-bold text-gray-800 text-sm sm:text-base truncate max-w-[150px] sm:max-w-none">
-            SB Syllabus Manager
-        </div>
-
-        <button onclick="toggleMenu()" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 hover:bg-black text-white transition shadow-lg">
-            <i class="fas fa-bars"></i>
-        </button>
-    </nav>
-
-    <!-- BACKDROP -->
-    <div id="action-menu-backdrop" onclick="toggleMenu()" class="fixed inset-0 bg-black/20 z-40 hidden transition-opacity"></div>
-
-    <!-- SIDE MENU -->
-    <div id="action-menu" class="fixed top-0 right-0 bottom-0 w-[280px] bg-white z-50 shadow-2xl menu-hidden flex flex-col no-print border-l border-gray-100">
-        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Tools</h3>
-            <button onclick="toggleMenu()" class="w-8 h-8 rounded-full hover:bg-gray-200 flex items-center justify-center text-gray-500"><i class="fas fa-times"></i></button>
-        </div>
-        
-        <div class="p-4 overflow-y-auto flex-1 space-y-4">
-            <button onclick="showWelcomeScreen(); toggleMenu()" class="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm font-bold py-3 px-4 rounded-xl transition flex items-center gap-3">
-                <i class="fas fa-home text-lg"></i> Home Screen
-            </button>
-
-            <div class="h-px bg-gray-100"></div>
-
-            <div>
-                <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">Content</label>
-                <button onclick="handleAction(addSubjectRow)" class="w-full bg-green-50 hover:bg-green-100 text-green-700 text-sm font-bold py-3 px-4 rounded-xl transition flex items-center gap-3">
-                    <i class="fas fa-plus-circle text-lg"></i> Add Subject Row
-                </button>
-            </div>
-
-            <div class="h-px bg-gray-100"></div>
             
-            <div>
-                <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">Text Styling</label>
-                <div class="flex bg-gray-100 p-1 rounded-lg mb-3">
-                    <button onclick="setTextAlign('left')" class="flex-1 py-2 rounded-md hover:bg-white hover:shadow-sm text-gray-600 transition"><i class="fas fa-align-left"></i></button>
-                    <button onclick="setTextAlign('center')" class="flex-1 py-2 rounded-md hover:bg-white hover:shadow-sm text-gray-600 transition"><i class="fas fa-align-center"></i></button>
-                    <button onclick="setTextAlign('right')" class="flex-1 py-2 rounded-md hover:bg-white hover:shadow-sm text-gray-600 transition"><i class="fas fa-align-right"></i></button>
-                </div>
-                <div class="flex gap-2 mb-3">
-                    <button onclick="changeSize(-1)" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-bold transition"><i class="fas fa-minus text-xs"></i> A</button>
-                    <button onclick="changeSize(1)" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg font-bold transition"><i class="fas fa-plus text-xs"></i> A</button>
-                </div>
-                <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-lg border border-gray-200 cursor-pointer relative">
-                    <div class="w-8 h-8 rounded-full border border-gray-300 shadow-sm" style="background: linear-gradient(135deg, #ff0000 0%, #00ff00 50%, #0000ff 100%);"></div>
-                    <label class="text-sm font-medium text-gray-700 flex-1 cursor-pointer">Text Color</label>
-                    <input type="color" onchange="changeColor(this.value)" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
-                </div>
-            </div>
-
-            <div class="h-px bg-gray-100"></div>
-            
-            <div>
-                <label class="text-xs font-bold text-gray-400 uppercase mb-2 block">Export</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="handleAction(downloadPDF)" class="bg-red-50 hover:bg-red-100 text-red-700 text-sm font-bold py-3 px-2 rounded-xl transition flex flex-col items-center justify-center gap-1">
-                        <i class="fas fa-file-pdf text-xl"></i> PDF
-                    </button>
-                    <button onclick="handleAction(exportToWord)" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-bold py-3 px-2 rounded-xl transition flex flex-col items-center justify-center gap-1">
-                        <i class="fas fa-file-word text-xl"></i> Word
-                    </button>
-                </div>
-            </div>
         </div>
-    </div>
 
-    <!-- SAVED FILES MODAL -->
-    <div id="file-modal" class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm hidden flex items-center justify-center no-print opacity-0 transition-opacity duration-300 p-4">
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl transform scale-95 transition-transform duration-300 p-6 relative flex flex-col max-h-[90vh]">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Cloud Manager</h2>
-                    <p class="text-xs sm:text-sm text-gray-500">Sync Data with GitHub</p>
-                </div>
-                <button onclick="closeFileModal()" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition"><i class="fas fa-times text-xl"></i></button>
-            </div>
+        <!-- RIGHT SIDE: Content Area (Scrollable) -->
+        <div class="content-area flex-1 bg-[#f0f0f0] h-full overflow-y-auto p-10 flex justify-center items-start">
             
-            <!-- GITHUB SETUP -->
-            <div class="mb-4 bg-gray-900 text-white rounded-lg p-4 shadow-sm">
-                <div class="flex flex-col gap-2">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-2 font-bold text-sm">
-                            <i class="fab fa-github"></i>
-                            <span>GitHub Sync Setup</span>
+            <!-- Main Paper -->
+            <div id="paperContent" class="paper">
+                
+                <!-- Header Section -->
+                <div class="flex items-start gap-6 mb-12">
+                    
+                    <!-- Logo Section -->
+                    <div class="relative w-20 h-20 group cursor-pointer shrink-0" onclick="document.getElementById('logoInput').click()" title="Click to upload logo">
+                        <input type="file" id="logoInput" class="hidden" accept="image/*" onchange="loadLogo(event)">
+                        <div id="logoContainer" class="w-full h-full rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden hover:border-gray-300 transition-colors relative">
+                            <i id="defaultLogoIcon" class="fas fa-school text-3xl text-gray-400 absolute"></i>
+                            <img id="logoImage" src="" class="hidden w-full h-full object-contain bg-white z-10" alt="Logo">
                         </div>
-                        <button onclick="toggleGithubConfig()" class="text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded">Edit Config</button>
-                    </div>
-                    <div id="github-config" class="hidden space-y-2 mt-2 bg-gray-800 p-2 rounded border border-gray-700">
-                        <div class="grid grid-cols-1 gap-2">
-                            <div><label class="text-[10px] text-gray-400">Username</label><input type="text" id="gh-username" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white"></div>
-                            <div><label class="text-[10px] text-gray-400">Repository</label><input type="text" id="gh-repo" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white"></div>
-                            <div><label class="text-[10px] text-gray-400">File Name</label><input type="text" id="gh-filename" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs w-full text-white"></div>
-                            <div><label class="text-[10px] text-yellow-400">Personal Access Token</label><input type="text" id="gh-token" placeholder="Paste your new token here..." class="bg-gray-900 border border-yellow-600 rounded px-2 py-1 text-xs w-full text-white placeholder-gray-500"></div>
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg no-print pointer-events-none z-20">
+                            <i class="fas fa-camera text-gray-600"></i>
                         </div>
-                        <button onclick="saveGithubConfig()" class="w-full bg-green-600 hover:bg-green-700 text-white text-xs py-2 rounded font-bold mt-2">Connect & Sync</button>
                     </div>
-                    <div id="github-status" class="text-xs text-gray-300 mt-1 flex items-center gap-2"><i class="fas fa-circle text-red-500 text-[8px]"></i> Not Connected</div>
+
+                    <!-- Header Text -->
+                    <div class="flex-grow flex flex-col justify-center h-20">
+                        <h1 id="schoolName" class="text-3xl font-light tracking-tight text-black editable" contenteditable="true" placeholder="School Name">
+                            SB Boys Higher Secondary School
+                        </h1>
+                        <div id="schoolAddress" class="text-gray-500 text-sm mt-1 font-light editable" contenteditable="true" placeholder="Address line...">
+                            46 MB Khushab
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="flex-grow overflow-y-auto pr-2 mb-4 space-y-2" id="modal-file-list"></div>
-            
-            <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
-                <button onclick="closeFileModal()" class="px-4 py-2 text-gray-500 hover:text-gray-700 font-medium text-sm">Close</button>
-                <button onclick="showWelcomeScreen(); closeFileModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg font-bold shadow-md hover:shadow-lg transition flex items-center gap-2"><i class="fas fa-plus"></i> Create New</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- DOCUMENT AREA -->
-    <div id="document-content" class="a4-paper">
-        <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-8 mb-8">
-            <div class="w-24 h-24 flex-shrink-0 flex items-center justify-center cursor-pointer group relative overflow-hidden bg-gray-50 rounded-full border border-gray-100">
-                <input type="file" id="logo-upload" accept="image/*" class="hidden" onchange="updateLogo(this)">
-                <div id="logo-placeholder" class="text-gray-300 text-4xl group-hover:text-gray-500"><i class="fas fa-image"></i></div>
-                <img id="school-logo" src="" class="hidden w-full h-full object-contain">
-            </div>
-            <div class="flex-grow w-full">
-                <input type="text" id="school-name" value="SCHOOL NAME HERE" onfocus="setActive(this)" oninput="handleInput(this)" class="text-3xl sm:text-4xl font-bold text-center w-full uppercase tracking-tight text-gray-900 leading-tight">
-                <input type="text" id="school-address" value="An English Medium School System" onfocus="setActive(this)" oninput="handleInput(this)" class="text-center w-full text-base sm:text-lg text-gray-600 mt-1">
-            </div>
-        </div>
+                <!-- Title & Info Grid -->
+                <div class="mb-10 text-center">
+                    <h2 id="docTitle" class="text-lg font-medium text-black mb-8 editable inline-block border-b-2 border-black pb-1 min-w-[50px]" contenteditable="true">
+                        Syllabus for Winter Vacation 2025
+                    </h2>
 
-        <div class="mb-6 text-center">
-            <input type="text" id="doc-title" value="WINTER VACATION SYLLABUS" onfocus="setActive(this)" oninput="handleInput(this)" class="text-xl sm:text-2xl font-bold text-center w-full underline decoration-2 underline-offset-4 mb-4">
-            <div class="flex flex-wrap justify-center gap-4 sm:gap-8">
-                <div class="flex items-center"><span class="font-bold mr-2 text-sm">CLASS:</span><input id="class-name" value="5th" onfocus="setActive(this)" oninput="handleInput(this)" class="w-20 font-bold border-b border-black text-center text-sm"></div>
-                <div class="flex items-center"><span class="font-bold mr-2 text-sm">SESSION:</span><input id="session-val" value="2025-26" onfocus="setActive(this)" oninput="handleInput(this)" class="w-24 font-bold border-b border-black text-center text-sm"></div>
-            </div>
-        </div>
+                    <div class="grid grid-cols-3 gap-8 text-left">
+                        <div>
+                            <span class="block text-xs uppercase tracking-widest text-gray-400 mb-1 editable" contenteditable="true">Class</span>
+                            <div id="docClass" class="text-xl font-normal editable" contenteditable="true">Nursery</div>
+                        </div>
+                        <div class="text-center">
+                            <span class="block text-xs uppercase tracking-widest text-gray-400 mb-1 editable" contenteditable="true">Session</span>
+                            <div id="docSession" class="text-xl font-normal editable text-center" contenteditable="true">2024-25</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-xs uppercase tracking-widest text-gray-400 mb-1 editable" contenteditable="true">Term</span>
+                            <div id="docTerm" class="text-xl font-normal editable text-right" contenteditable="true">Final</div>
+                        </div>
+                    </div>
+                </div>
 
-        <table id="syllabus-table">
-            <thead>
-                <tr>
-                    <th style="width: 8%;" class="text-xs sm:text-sm font-bold text-gray-600 uppercase">Sr.</th>
-                    <th style="width: 25%;" class="text-xs sm:text-sm font-bold text-gray-600 uppercase">Subject</th>
-                    <th style="width: 62%;" class="text-xs sm:text-sm font-bold text-gray-600 uppercase">Syllabus Details</th>
-                    <th class="no-print w-[5%]"></th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                <!-- Rows -->
-            </tbody>
-        </table>
+                <!-- Minimal Table -->
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="w-16 pl-4 editable" contenteditable="true">No.</th>
+                            <th class="w-1/4 editable" contenteditable="true">Subject</th>
+                            <th class="editable" contenteditable="true">Details</th>
+                            <th class="w-10 no-print text-center"><i class="fas fa-cog text-gray-300"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="syllabusBody">
+                        <!-- Rows injected via JS -->
+                    </tbody>
+                </table>
 
-        <div class="mt-16 flex justify-between px-4 sm:px-10">
-            <div class="text-center w-32 sm:w-40">
-                <div class="border-t border-black pt-1 font-bold text-xs sm:text-sm">Class Teacher</div>
+                <!-- Add Subject Button -->
+                <div class="mt-8 text-center no-print">
+                    <button onclick="addRow()" class="inline-flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-600 font-medium py-2 px-6 rounded-full border border-gray-200 transition-colors shadow-sm text-sm">
+                        <i class="fas fa-plus"></i> Add Subject
+                    </button>
+                </div>
+
             </div>
-            <div class="text-center w-32 sm:w-40">
-                <div class="border-t border-black pt-1 font-bold text-xs sm:text-sm">Principal</div>
-            </div>
+
         </div>
     </div>
 
     <script>
-        // --- DATA ---
-        let currentDocId = null;
-        let allDocs = {};
-        let currentElement = null;
-        let saveTimeout; 
+        // Global variables for Realtime Sync
+        let autoSaveTimer;
+        let currentFilename = ""; 
+        let isGitHubConnected = false;
 
-        // --- GITHUB CONFIG ---
-        let GH_USER = localStorage.getItem('gh_user') || 'kausarveo-art';
-        let GH_REPO = localStorage.getItem('gh_repo') || 'sb1';
-        let GH_FILE = localStorage.getItem('gh_file') || 'syllabus_data.json';
-        let GH_TOKEN = localStorage.getItem('gh_token') || ''; 
-        let ghFileSha = null;
+        // --- STARTUP LOGIC ---
+        
+        function toggleGitHubSettings() {
+            const settings = document.getElementById('ghSettings');
+            const chevron = document.getElementById('ghChevron');
+            settings.classList.toggle('hidden');
+            chevron.style.transform = settings.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('gh-username').value = GH_USER;
-            document.getElementById('gh-repo').value = GH_REPO;
-            document.getElementById('gh-filename').value = GH_FILE;
-            document.getElementById('gh-token').value = GH_TOKEN;
-
-            const stored = localStorage.getItem('school_syllabus_data');
-            if (stored) allDocs = JSON.parse(stored);
+        // Load saved GH creds on startup
+        window.addEventListener('load', () => {
+            const creds = JSON.parse(localStorage.getItem('sb_gh_creds') || '{}');
+            if(creds.username) document.getElementById('ghUsername').value = creds.username;
+            if(creds.repo) document.getElementById('ghRepo').value = creds.repo;
+            if(creds.token) document.getElementById('ghToken').value = creds.token;
+            // Also restore filename if it exists
+            if(creds.filename && document.getElementById('ghFilename')) document.getElementById('ghFilename').value = creds.filename;
             
-            if(GH_TOKEN && GH_TOKEN.trim() !== '') {
-                syncWithGithub(false);
-                updateSyncUI("Connected", "success");
+            // Render table defaults
+            renderRows();
+        });
+
+        // 1. Fetch File List from GitHub
+        async function fetchGitHubFiles() {
+            const username = document.getElementById('ghUsername').value.trim();
+            const repo = document.getElementById('ghRepo').value.trim();
+            const token = document.getElementById('ghToken').value.trim();
+            const listContainer = document.getElementById('githubFilesList');
+            const btn = document.getElementById('btnFetchFiles');
+
+            if(!username || !repo || !token) {
+                alert("Please enter GitHub credentials in settings first.");
+                toggleGitHubSettings();
+                return;
+            }
+
+            // Save creds
+            localStorage.setItem('sb_gh_creds', JSON.stringify({username, repo, token}));
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            listContainer.classList.remove('hidden');
+            listContainer.innerHTML = '<p class="text-xs text-center p-2">Fetching files...</p>';
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${username}/${repo}/contents`, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                if(!response.ok) throw new Error("Failed to fetch files");
+
+                const files = await response.json();
+                listContainer.innerHTML = '';
+
+                // Filter for JSON files
+                const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+
+                if(jsonFiles.length === 0) {
+                    listContainer.innerHTML = '<p class="text-xs text-center p-2 text-gray-500">No .json files found.</p>';
+                } else {
+                    jsonFiles.forEach(file => {
+                        const item = document.createElement('div');
+                        item.className = "p-2 hover:bg-blue-50 border-b border-gray-100 last:border-0 cursor-pointer text-sm flex items-center gap-2";
+                        item.innerHTML = `<i class="far fa-file-code text-blue-500"></i> ${file.name}`;
+                        item.onclick = () => loadGitHubFile(file.name);
+                        listContainer.appendChild(item);
+                    });
+                }
+
+            } catch(e) {
+                listContainer.innerHTML = `<p class="text-xs text-center p-2 text-red-500">Error: ${e.message}</p>`;
+            } finally {
+                btn.innerHTML = '<i class="fab fa-github"></i> Load from GitHub';
+            }
+        }
+
+        // 2. Load Specific File content
+        async function loadGitHubFile(filename) {
+            const creds = JSON.parse(localStorage.getItem('sb_gh_creds'));
+            try {
+                const response = await fetch(`https://api.github.com/repos/${creds.username}/${creds.repo}/contents/${filename}`, {
+                    headers: { 'Authorization': `token ${creds.token}` }
+                });
+                
+                if(!response.ok) throw new Error("Load failed");
+                
+                const data = await response.json();
+                const content = JSON.parse(decodeURIComponent(escape(atob(data.content)))); // Base64 decode handles utf8
+
+                // Populate UI
+                document.getElementById('schoolName').innerHTML = content.schoolName || "";
+                document.getElementById('schoolAddress').innerHTML = content.address || "";
+                document.getElementById('docTitle').innerHTML = content.title || "";
+                document.getElementById('docClass').innerHTML = content.class || "";
+                document.getElementById('syllabusBody').innerHTML = content.rows || "";
+
+                // Set state
+                currentFilename = filename;
+                isGitHubConnected = true;
+                
+                // Hide modal
+                document.getElementById('startupModal').style.display = 'none';
+                document.getElementById('appLayout').classList.remove('hidden');
+
+                // Start observing changes
+                initAutoSave();
+                updateSyncStatus('loaded');
+
+            } catch(e) {
+                alert("Error loading file: " + e.message);
+            }
+        }
+
+        // 3. Start New
+        function startApplication() {
+            const docName = document.getElementById('startDocName').value.trim();
+            if(!docName) {
+                alert("Please enter a Project Name.");
+                return;
+            }
+
+            // Save creds even if just creating new (so we can sync later)
+            const username = document.getElementById('ghUsername').value.trim();
+            const repo = document.getElementById('ghRepo').value.trim();
+            const token = document.getElementById('ghToken').value.trim();
+            const manualFile = document.getElementById('ghFilename').value.trim();
+            
+            if(username && repo && token) {
+                localStorage.setItem('sb_gh_creds', JSON.stringify({username, repo, token, filename: manualFile}));
+                
+                // Use manual filename if provided, else auto-generate from project name
+                currentFilename = manualFile || (docName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + ".json");
+                
+                isGitHubConnected = true;
+                initAutoSave();
+            } else {
+                isGitHubConnected = false;
+            }
+
+            // Hide Modal, Show App
+            document.getElementById('startupModal').style.display = 'none';
+            document.getElementById('appLayout').classList.remove('hidden');
+        }
+
+
+        // --- MAIN APP LOGIC ---
+
+        let activeElement = null;
+
+        document.addEventListener('click', function(e) {
+            if (activeElement && activeElement !== e.target) {
+                activeElement.classList.remove('active-edit');
+            }
+            if (e.target.classList.contains('editable')) {
+                activeElement = e.target;
+                activeElement.classList.add('active-edit');
+            } else if (!e.target.closest('.fixed') && !e.target.closest('.sidebar-panel')) { 
+                if(activeElement) activeElement.classList.remove('active-edit');
+                activeElement = null;
             }
         });
 
-        // --- WELCOME SCREEN ---
-        function startNewDocument() {
-            const nameInput = document.getElementById('welcome-doc-name');
-            let docName = nameInput.value.trim();
-            if (!docName) { alert("Please enter a name."); nameInput.focus(); return; }
-            
-            try {
-                createNewFile(true, docName);
-                hideWelcomeScreen();
-                nameInput.value = "";
-            } catch (e) {
-                alert("Error creating file: " + e.message);
+        // Detect Changes for Auto Save
+        document.getElementById('paperContent').addEventListener('input', () => {
+            updateSyncStatus('editing');
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(performAutoSave, 2000); // Save after 2 sec inactivity
+        });
+
+        function formatText(command) {
+            document.execCommand(command, false, null);
+            if (activeElement && window.getSelection().isCollapsed) {
+                 if (command === 'bold') activeElement.style.fontWeight = activeElement.style.fontWeight === 'bold' ? 'normal' : 'bold';
+                 if (command === 'italic') activeElement.style.fontStyle = activeElement.style.fontStyle === 'italic' ? 'normal' : 'italic';
+                 if (command === 'underline') activeElement.style.textDecoration = activeElement.style.textDecoration === 'underline' ? 'none' : 'underline';
             }
         }
-        function handleEnter(e) { if(e.key === 'Enter') startNewDocument(); }
-        
-        function showWelcomeScreen() { 
-            const el = document.getElementById('welcome-screen');
-            el.style.display = 'flex';
-            setTimeout(() => el.classList.remove('fade-out'), 10);
-            document.body.style.overflow = "hidden"; 
-        }
-        
-        function hideWelcomeScreen() { 
-            const el = document.getElementById('welcome-screen');
-            el.classList.add('fade-out'); 
-            document.body.style.overflow = "auto"; 
-            setTimeout(() => el.style.display = 'none', 300);
-        }
-        
-        function openFileModalFromWelcome() { 
-            renderFileList(); 
-            if (Object.keys(allDocs).length === 0 && (!GH_TOKEN || GH_TOKEN.trim() === '')) { 
-                alert("No saved files found."); 
-                return; 
-            } 
-            openFileModal(); 
+
+        function changeFontFamily(font) {
+            if (!activeElement) return alert("Select text first.");
+            activeElement.style.fontFamily = font;
         }
 
-        // --- GITHUB LOGIC ---
-        function toggleGithubConfig() { document.getElementById('github-config').classList.toggle('hidden'); }
-        async function saveGithubConfig() {
-            GH_USER = document.getElementById('gh-username').value.trim();
-            GH_REPO = document.getElementById('gh-repo').value.trim();
-            GH_TOKEN = document.getElementById('gh-token').value.trim();
-            GH_FILE = document.getElementById('gh-filename').value.trim();
-            if(!GH_USER || !GH_REPO || !GH_TOKEN) { alert("Please fill all fields!"); return; }
-            localStorage.setItem('gh_user', GH_USER); localStorage.setItem('gh_repo', GH_REPO);
-            localStorage.setItem('gh_token', GH_TOKEN); localStorage.setItem('gh_file', GH_FILE);
-            document.getElementById('github-config').classList.add('hidden');
-            updateSyncUI("Connecting...", "syncing");
-            await syncWithGithub(true);
-        }
-        async function syncWithGithub(forceFetch = false) {
-            const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${GH_FILE}`;
-            try {
-                const response = await fetch(url, { headers: { 'Authorization': `token ${GH_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' } });
-                if (response.status === 200) {
-                    const data = await response.json(); ghFileSha = data.sha;
-                    try {
-                        const serverContent = decodeURIComponent(escape(window.atob(data.content.replace(/\n/g, ""))));
-                        const serverDocs = JSON.parse(serverContent);
-                        if (forceFetch) { allDocs = serverDocs; localStorage.setItem('school_syllabus_data', JSON.stringify(allDocs)); renderFileList(); updateSyncUI("Synced", "success"); } 
-                        else { updateSyncUI("Online", "success"); }
-                    } catch(e) { console.error(e); }
-                } else if (response.status === 404) { updateSyncUI("Ready to Create", "success"); }
-                else { updateSyncUI("Auth Error", "error"); }
-            } catch (error) { updateSyncUI("Offline", "error"); }
-        }
-        async function pushToGithub(retry = true) {
-            if(!GH_TOKEN) return; updateSyncUI("Saving...", "syncing");
-            const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${GH_FILE}`;
-            const contentStr = JSON.stringify(allDocs, null, 2);
-            const contentBase64 = window.btoa(unescape(encodeURIComponent(contentStr)));
-            const bodyData = { message: "Auto-save", content: contentBase64, sha: ghFileSha };
-            try {
-                const response = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${GH_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify(bodyData) });
-                if (response.ok) { const data = await response.json(); ghFileSha = data.content.sha; updateSyncUI("Saved", "success"); }
-                else if (response.status === 409 && retry) { await getLatestSha(); pushToGithub(false); }
-                else updateSyncUI("Save Failed", "error");
-            } catch (error) { updateSyncUI("Error", "error"); }
-        }
-        async function getLatestSha() {
-            const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${GH_FILE}`;
-            try { const response = await fetch(url, { headers: { 'Authorization': `token ${GH_TOKEN}`, 'Accept': 'application/vnd.github.v3+json' } }); if (response.ok) { const data = await response.json(); ghFileSha = data.sha; } } catch (e) {}
-        }
-        
-        function updateSyncUI(msg, type) {
-            const modalStatus = document.getElementById('github-status');
-            const navStatus = document.getElementById('sync-status-nav');
-            let colorClass = type === 'success' ? 'text-green-500' : type === 'error' ? 'text-red-500' : 'text-blue-500';
-            modalStatus.innerHTML = `<i class="fas fa-circle ${colorClass} text-[8px]"></i> ${msg}`;
-            navStatus.innerHTML = `<i class="fas fa-cloud ${colorClass}"></i> <span>${msg}</span>`;
+        function changeFontSize(delta) {
+            if (!activeElement) return alert("Select text first.");
+            const currentSize = window.getComputedStyle(activeElement).getPropertyValue('font-size');
+            activeElement.style.fontSize = (parseFloat(currentSize) + delta) + 'px';
         }
 
-        // --- APP LOGIC ---
-        function autoResize(el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; }
-        function saveAllDocs() { localStorage.setItem('school_syllabus_data', JSON.stringify(allDocs)); renderFileList(); if(GH_TOKEN && GH_TOKEN.trim() !== '') { clearTimeout(saveTimeout); saveTimeout = setTimeout(() => { pushToGithub(); }, 2000); } }
-        function generateId() { return 'doc_' + Date.now(); }
-        
-        function createNewFile(silent = false, nameOverride = null) {
-            let fileName = nameOverride || "New Syllabus";
-            if (!silent && !nameOverride) { fileName = prompt("Enter Name:", "New Syllabus"); if(!fileName) return; }
-            currentDocId = generateId();
-            const newDoc = { id: currentDocId, fileName: fileName, timestamp: Date.now(), schoolName: "SCHOOL NAME HERE", address: "An English Medium School System", title: "Winter Vacation Syllabus", className: "5th", session: "2025-26", logoSrc: "", footerLeft: "Class Teacher", footerRight: "Principal", rows: [{ subject: "English", details: "Unit 1 & 2." }] };
-            allDocs[currentDocId] = newDoc; saveAllDocs(); renderDocToScreen(newDoc); closeFileModal();
-        }
-        
-        function saveCurrentDoc() {
-            if (!currentDocId) return;
-            const docData = { id: currentDocId, fileName: allDocs[currentDocId].fileName, timestamp: Date.now(), schoolName: document.getElementById('school-name').value, address: document.getElementById('school-address').value, title: document.getElementById('doc-title').value, className: document.getElementById('class-name').value, session: document.getElementById('session-val').value, logoSrc: document.getElementById('school-logo').src, footerLeft: document.getElementById('footer-left').value, footerRight: document.getElementById('footer-right').value, rows: [] };
-            const tbody = document.getElementById('table-body');
-            for (let i = 0; i < tbody.rows.length; i++) {
-                const inputs = tbody.rows[i].querySelectorAll('input, textarea');
-                if (inputs.length >= 2) docData.rows.push({ subject: inputs[0].value, details: inputs[1].value, isUrdu: inputs[1].classList.contains('urdu-text'), textAlign: inputs[1].style.textAlign, fontSize: inputs[1].style.fontSize, color: inputs[1].style.color });
+        function alignText(alignment) {
+            if (!activeElement) return alert("Select text first.");
+            activeElement.style.textAlign = alignment;
+            if(activeElement.parentElement.classList.contains('flex-col')) {
+                activeElement.parentElement.classList.remove('items-start', 'items-center', 'items-end');
+                if(alignment === 'center') activeElement.parentElement.classList.add('items-center');
+                else if(alignment === 'right') activeElement.parentElement.classList.add('items-end');
+                else activeElement.parentElement.classList.add('items-start');
             }
-            if(document.getElementById('school-logo').classList.contains('hidden')) docData.logoSrc = ""; 
-            allDocs[currentDocId] = docData; saveAllDocs();
-        }
-        
-        function loadDoc(id) { if(!allDocs[id]) return; currentDocId = id; renderDocToScreen(allDocs[id]); closeFileModal(); hideWelcomeScreen(); }
-        function deleteFile(e, id) { e.stopPropagation(); if(confirm("Delete?")) { delete allDocs[id]; saveAllDocs(); renderFileList(); if(currentDocId===id) { showWelcomeScreen(); currentDocId=null; } } }
-        function renameFile(e, id) { e.stopPropagation(); const newName = prompt("Rename:", allDocs[id].fileName); if(newName) { allDocs[id].fileName = newName; saveAllDocs(); renderFileList(); } }
-        
-        function renderDocToScreen(data) {
-            document.getElementById('school-name').value = data.schoolName || ""; document.getElementById('school-address').value = data.address || ""; document.getElementById('doc-title').value = data.title || ""; document.getElementById('class-name').value = data.className || ""; document.getElementById('session-val').value = data.session || ""; document.getElementById('footer-left').value = data.footerLeft || ""; document.getElementById('footer-right').value = data.footerRight || "";
-            const logoImg = document.getElementById('school-logo');
-            if (data.logoSrc && data.logoSrc.length > 100) { logoImg.src = data.logoSrc; logoImg.classList.remove('hidden'); document.getElementById('logo-placeholder').classList.add('hidden'); } else { logoImg.classList.add('hidden'); document.getElementById('logo-placeholder').classList.remove('hidden'); }
-            const tbody = document.getElementById('table-body'); tbody.innerHTML = '';
-            if (data.rows && data.rows.length > 0) data.rows.forEach(r => addSubjectRow(r.subject, r.details, r.isUrdu, r.textAlign, r.fontSize, r.color)); else addSubjectRow();
-            setTimeout(() => { document.querySelectorAll('textarea').forEach(el => autoResize(el)); }, 0);
-            document.querySelectorAll('input, textarea').forEach(checkLanguage);
-        }
-        
-        function renderFileList() {
-            const listEl = document.getElementById('modal-file-list'); listEl.innerHTML = '';
-            const ids = Object.keys(allDocs).sort((a,b) => allDocs[b].timestamp - allDocs[a].timestamp);
-            if (ids.length === 0) { listEl.innerHTML = '<div class="text-center py-10 text-gray-400"><p>No files.</p></div>'; return; }
-            ids.forEach(id => {
-                const div = document.createElement('div'); div.className = `file-item ${id === currentDocId ? 'active' : ''}`; div.onclick = () => loadDoc(id);
-                div.innerHTML = `<div class="flex flex-col flex-grow"><span class="font-bold text-gray-800">${allDocs[id].fileName}</span><span class="text-xs text-gray-500">${new Date(allDocs[id].timestamp).toLocaleDateString()}</span></div><div class="flex gap-1 ml-2"><button onclick="renameFile(event, '${id}')" class="text-gray-400 hover:text-blue-500 p-2"><i class="fas fa-edit"></i></button><button onclick="deleteFile(event, '${id}')" class="text-gray-400 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></div>`;
-                listEl.appendChild(div);
-            });
         }
 
-        // --- UI ACTIONS ---
-        function toggleMenu() { 
-            const menu = document.getElementById('action-menu');
-            const backdrop = document.getElementById('action-menu-backdrop');
-            if (menu.classList.contains('menu-hidden')) { menu.classList.remove('menu-hidden'); menu.classList.add('menu-visible'); backdrop.classList.remove('hidden'); } 
-            else { menu.classList.add('menu-hidden'); menu.classList.remove('menu-visible'); backdrop.classList.add('hidden'); }
+        function changePageSize(size) {
+            const paper = document.querySelector('.paper');
+            if(size==='a4') { paper.style.width='210mm'; paper.style.minHeight='297mm'; }
+            if(size==='letter') { paper.style.width='215.9mm'; paper.style.minHeight='279.4mm'; }
+            if(size==='legal') { paper.style.width='215.9mm'; paper.style.minHeight='355.6mm'; }
+            if(size==='a5') { paper.style.width='148mm'; paper.style.minHeight='210mm'; }
         }
-        
-        function handleAction(fn) { fn(); if(fn!==addSubjectRow) toggleMenu(); }
-        function openFileModal() { renderFileList(); document.getElementById('file-modal').classList.remove('hidden'); setTimeout(()=>document.getElementById('file-modal').classList.remove('opacity-0'),10); }
-        function closeFileModal() { document.getElementById('file-modal').classList.add('opacity-0'); setTimeout(()=>document.getElementById('file-modal').classList.add('hidden'),300); }
-        
-        function setActive(el) { document.querySelectorAll('.active-edit').forEach(e=>e.classList.remove('active-edit')); el.classList.add('active-edit'); currentElement = el; }
-        function changeSize(c) { if(!currentElement) return alert("Select text first"); const s = parseFloat(window.getComputedStyle(currentElement).fontSize); currentElement.style.fontSize = (s+c)+'px'; saveCurrentDoc(); autoResize(currentElement); }
-        function setTextAlign(align) { if(!currentElement) return alert("Select text first"); currentElement.style.textAlign = align; saveCurrentDoc(); }
-        function changeColor(color) { if(currentElement) { currentElement.style.color = color; saveCurrentDoc(); } }
-        
-        function checkLanguage(el) { if(/[\u0600-\u06FF]/.test(el.value)) { el.classList.add('urdu-text'); if(el.style.textTransform==='uppercase') { el.dataset.upper='true'; el.style.textTransform='none'; } } else { el.classList.remove('urdu-text'); if(el.dataset.upper) el.style.textTransform='uppercase'; } }
-        function handleInput(el) { checkLanguage(el); saveCurrentDoc(); }
-        function updateLogo(i) { if(i.files[0]) { const r=new FileReader(); r.onload=e=>{ document.getElementById('school-logo').src=e.target.result; document.getElementById('school-logo').classList.remove('hidden'); document.getElementById('logo-placeholder').classList.add('hidden'); saveCurrentDoc(); }; r.readAsDataURL(i.files[0]); } }
-        
-        function addSubjectRow(s="",d="",u=false, align="left", size="inherit", color="") {
-            const tr=document.createElement('tr');
-            tr.innerHTML=`<td class="text-gray-400 font-mono text-sm pt-5">00</td>
-            <td><input type="text" value="${s}" onfocus="setActive(this)" oninput="handleInput(this)" class="font-semibold text-gray-800"></td>
-            <td><textarea rows="1" onfocus="setActive(this)" oninput="handleInput(this); autoResize(this)" class="text-gray-600 text-sm ${u?'urdu-text':''}">${d}</textarea></td>
-            <td class="no-print text-center"><button onclick="deleteRow(this)" class="text-gray-300 hover:text-red-500"><i class="fas fa-times"></i></button></td>`;
-            const ta = tr.querySelector('textarea');
-            if(align) ta.style.textAlign = align; if(size !== "inherit") ta.style.fontSize = size; if(color) ta.style.color = color;
-            document.getElementById('table-body').appendChild(tr); autoResize(ta); renumberRows(); saveCurrentDoc();
-        }
-        function deleteRow(b) { b.closest('tr').remove(); renumberRows(); saveCurrentDoc(); }
-        function renumberRows() { Array.from(document.getElementById('table-body').rows).forEach((r,i)=>r.cells[0].innerText=(i+1).toString().padStart(2,'0')); }
-        
-        function printPDF() { window.print(); }
+
         function downloadPDF() {
-            const element = document.getElementById('document-content');
-            const hidden = element.querySelectorAll('.no-print');
-            hidden.forEach(e => e.style.display = 'none');
-            const opt = { margin: [10, 10, 10, 10], filename: (allDocs[currentDocId]?.fileName || 'syllabus') + '.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-            html2pdf().set(opt).from(element).save().then(() => { hidden.forEach(e => e.style.display = ''); });
+            const element = document.getElementById('paperContent');
+            const opt = { margin: 0, filename: 'Syllabus.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            const btn = event.currentTarget;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+            html2pdf().set(opt).from(element).save().then(() => { btn.innerHTML = originalText; });
         }
 
-        function exportToWord() { 
-            const content = document.getElementById('document-content').cloneNode(true);
-            content.querySelectorAll('.no-print').forEach(el => el.remove());
-            content.querySelectorAll('input, textarea').forEach(input => {
-                let textVal = input.value; if(input.tagName === 'TEXTAREA') textVal = textVal.replace(/\n/g, '<br>');
-                const div = document.createElement('div'); div.innerHTML = textVal;
-                const styles = window.getComputedStyle(input);
-                div.style.fontFamily = input.classList.contains('urdu-text') ? "'Jameel Noori Nastaliq', 'Noto Nastaliq Urdu', serif" : "Arial, sans-serif";
-                div.style.fontSize = styles.fontSize; div.style.fontWeight = styles.fontWeight; div.style.textAlign = styles.textAlign; div.style.color = styles.color;
-                if(input.classList.contains('urdu-text')) { div.style.direction = 'rtl'; }
-                input.parentNode.replaceChild(div, input);
-            });
-            content.querySelectorAll('th, td').forEach(cell => { cell.style.border = '1px solid #000'; cell.style.padding = '8px'; });
-            const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>${content.innerHTML}</body></html>`;
-            const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-            const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = (allDocs[currentDocId]?.fileName || 'syllabus') + '.doc'; link.click();
+        // --- REALTIME SYNC LOGIC ---
+
+        function initAutoSave() {
+            if(isGitHubConnected && currentFilename) {
+                updateSyncStatus('ready');
+            } else {
+                document.getElementById('syncStatus').innerHTML = '<span class="text-gray-400">Offline Mode</span>';
+            }
         }
+
+        function updateSyncStatus(state) {
+            const statusBox = document.getElementById('syncStatus');
+            const icon = document.getElementById('syncIcon');
+            const text = document.getElementById('syncText');
+
+            if(!isGitHubConnected) return;
+
+            if(state === 'editing') {
+                statusBox.className = "w-full text-xs text-center p-2 rounded border border-yellow-200 bg-yellow-50 text-yellow-600 transition-all flex items-center justify-center gap-2";
+                icon.innerHTML = '<i class="fas fa-pencil-alt"></i>';
+                text.innerText = "Unsaved changes...";
+            } else if (state === 'syncing') {
+                statusBox.className = "w-full text-xs text-center p-2 rounded border border-blue-200 bg-blue-50 text-blue-600 transition-all flex items-center justify-center gap-2";
+                icon.innerHTML = '<i class="fas fa-sync fa-spin"></i>';
+                text.innerText = "Syncing to GitHub...";
+            } else if (state === 'saved') {
+                statusBox.className = "w-full text-xs text-center p-2 rounded border border-green-200 bg-green-50 text-green-600 transition-all flex items-center justify-center gap-2";
+                icon.innerHTML = '<i class="fas fa-check"></i>';
+                text.innerText = "Saved to GitHub";
+            } else if (state === 'error') {
+                statusBox.className = "w-full text-xs text-center p-2 rounded border border-red-200 bg-red-50 text-red-600 transition-all flex items-center justify-center gap-2";
+                icon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                text.innerText = "Sync Failed";
+            } else if (state === 'loaded') {
+                statusBox.className = "w-full text-xs text-center p-2 rounded border border-gray-200 bg-gray-50 text-gray-500 transition-all flex items-center justify-center gap-2";
+                icon.innerHTML = '<i class="fas fa-cloud-download-alt"></i>';
+                text.innerText = "Loaded from Cloud";
+            }
+        }
+
+        async function performAutoSave() {
+            if(!isGitHubConnected || !currentFilename) return;
+
+            updateSyncStatus('syncing');
+            const creds = JSON.parse(localStorage.getItem('sb_gh_creds'));
+
+            const content = {
+                date: new Date().toISOString(),
+                schoolName: document.getElementById('schoolName').innerHTML,
+                address: document.getElementById('schoolAddress').innerHTML,
+                title: document.getElementById('docTitle').innerHTML,
+                class: document.getElementById('docClass').innerHTML,
+                rows: document.getElementById('syllabusBody').innerHTML
+            };
+            
+            const jsonString = JSON.stringify(content, null, 2);
+            // safe base64 encoding
+            const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
+            const url = `https://api.github.com/repos/${creds.username}/${creds.repo}/contents/${currentFilename}`;
+
+            try {
+                // Get SHA
+                let sha = null;
+                try {
+                    const getRes = await fetch(url, { headers: { 'Authorization': `token ${creds.token}` } });
+                    if(getRes.ok) {
+                        const data = await getRes.json();
+                        sha = data.sha;
+                    }
+                } catch(e) {}
+
+                // PUT
+                const body = {
+                    message: "Auto-save " + new Date().toLocaleTimeString(),
+                    content: base64Content
+                };
+                if(sha) body.sha = sha;
+
+                const putRes = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${creds.token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if(putRes.ok) {
+                    updateSyncStatus('saved');
+                    // Save locally as well just in case
+                    saveCurrentWork(true); 
+                } else {
+                    updateSyncStatus('error');
+                }
+            } catch(e) {
+                updateSyncStatus('error');
+                console.error(e);
+            }
+        }
+
+        // --- LOCAL STORAGE LOGIC ---
+
+        function saveCurrentWork(silent = false) {
+            const name = document.getElementById('schoolName').innerText.trim() || "Untitled";
+            const fileData = {
+                id: Date.now(),
+                displayName: name,
+                date: new Date().toLocaleDateString(),
+                schoolName: document.getElementById('schoolName').innerHTML,
+                rows: document.getElementById('syllabusBody').innerHTML,
+            };
+
+            let files = JSON.parse(localStorage.getItem('sb_syllabus_files') || "[]");
+            files.unshift(fileData);
+            if(files.length > 10) files.pop();
+            localStorage.setItem('sb_syllabus_files', JSON.stringify(files));
+            renderRecentFiles();
+            if(!silent) alert("Saved Locally!");
+        }
+
+        function renderRecentFiles() {
+            const list = document.getElementById('recentFilesList');
+            const files = JSON.parse(localStorage.getItem('sb_syllabus_files') || "[]");
+            if(files.length === 0) {
+                list.innerHTML = '<p class="text-xs text-gray-400 text-center italic py-2">No saved files.</p>';
+                return;
+            }
+            list.innerHTML = '';
+            files.forEach(file => {
+                const item = document.createElement('div');
+                item.className = "flex justify-between p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 mb-1";
+                item.innerHTML = `<span class="text-xs font-semibold truncate w-24">${file.displayName}</span>`;
+                item.onclick = () => {
+                    document.getElementById('schoolName').innerHTML = file.schoolName;
+                    document.getElementById('syllabusBody').innerHTML = file.rows;
+                };
+                list.appendChild(item);
+            });
+        }
+
+        // --- TABLE LOGIC ---
+        
+        const initialSubjects = [
+            { subject: "English", detail: "Unit 1-5, Reading comprehension, Basic grammar concepts." },
+            { subject: "Mathematics", detail: "Counting 1-100, Simple addition, Shapes recognition." },
+            { subject: "General Science", detail: "Living & Non-living things, Plants, Animal kingdom." }
+        ];
+
+        function renderRows() {
+            const tbody = document.getElementById('syllabusBody');
+            if(tbody.children.length === 0) {
+                initialSubjects.forEach(item => { addRow(item.subject, item.detail); });
+            }
+            renderRecentFiles();
+        }
+
+        function addRow(subText = "", detailText = "") {
+            const tbody = document.getElementById('syllabusBody');
+            const rowCount = tbody.rows.length + 1;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="pl-4 text-gray-400 font-light text-sm align-middle">${String(rowCount).padStart(2, '0')}</td>
+                <td><div contenteditable="true" class="editable w-full font-medium">${subText}</div></td>
+                <td><div contenteditable="true" class="editable w-full text-gray-600 font-light">${detailText}</div></td>
+                <td class="no-print align-middle text-center">
+                    <button class="delete-btn text-gray-400 hover:text-red-500 p-2"><i class="fas fa-times pointer-events-none"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            updateSrNumbers();
+        }
+
+        document.getElementById('syllabusBody').addEventListener('click', function(e) {
+            const btn = e.target.closest('.delete-btn');
+            if (btn && btn.closest('tr')) { btn.closest('tr').remove(); updateSrNumbers(); }
+        });
+
+        function updateSrNumbers() {
+            const rows = document.getElementById('syllabusBody').querySelectorAll('tr');
+            rows.forEach((row, index) => { row.cells[0].innerText = String(index + 1).padStart(2, '0'); });
+        }
+
+        function loadLogo(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('logoImage').src = e.target.result;
+                    document.getElementById('logoImage').classList.remove('hidden');
+                    document.getElementById('defaultLogoIcon').classList.add('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        window.onload = renderRows;
     </script>
 </body>
 </html>
