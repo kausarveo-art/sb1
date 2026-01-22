@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimal Syllabus - Winter 2025</title>
+    <title>SB School System
+</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
@@ -108,7 +109,7 @@
             .main-layout {
                 display: block !important;
             }
-            .sidebar-panel {
+            .sidebar-panel, #mobileMenuBtn, #mobileOverlay {
                 display: none !important;
             }
             .content-area {
@@ -154,7 +155,7 @@
 
     <!-- STARTUP MODAL (Welcome Screen) -->
     <div id="startupModal">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-[480px] max-w-full border border-gray-100 max-h-[90vh] overflow-y-auto">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-[480px] max-w-full border border-gray-100 max-h-[90vh] overflow-y-auto mx-4">
             <div class="text-center mb-8">
                 <div class="w-16 h-16 bg-black text-white rounded-xl flex items-center justify-center text-2xl mx-auto mb-4">
                     <i class="fas fa-school"></i>
@@ -174,26 +175,12 @@
                 Create Document <i class="fas fa-plus"></i>
             </button>
 
-            <!-- Load from GitHub Section -->
-            <div class="mb-6 border-t pt-6">
-                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 text-center">OR Load Saved File</p>
-                
-                <button onclick="fetchGitHubFiles()" id="btnFetchFiles" class="w-full bg-white text-gray-700 border border-gray-200 py-3 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-300 transition flex items-center justify-center gap-2 shadow-sm">
-                    <i class="fab fa-github"></i> Load from GitHub
-                </button>
-
-                <!-- File List Container -->
-                <div id="githubFilesList" class="hidden mt-3 space-y-2 bg-gray-50 p-2 rounded-lg border border-gray-100 max-h-40 overflow-y-auto">
-                    <!-- Files will be injected here -->
-                </div>
-            </div>
-
-            <!-- GitHub Integration Accordion (Moved Bottom) -->
-            <div class="border rounded-lg overflow-hidden">
+            <!-- Connect to GitHub Section -->
+            <div class="border rounded-lg overflow-hidden border-gray-200">
                 <button onclick="toggleGitHubSettings()" class="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 transition text-left">
                     <div class="flex items-center gap-2">
-                        <i class="fas fa-cog text-gray-400"></i>
-                        <span class="text-sm font-medium text-gray-500">GitHub Settings</span>
+                        <i class="fab fa-github text-lg text-gray-700"></i>
+                        <span class="text-sm font-medium text-gray-700">Connect to GitHub</span>
                     </div>
                     <i id="ghChevron" class="fas fa-chevron-down text-gray-400 text-xs transition-transform"></i>
                 </button>
@@ -209,11 +196,9 @@
                         <input type="password" id="ghToken" placeholder="Personal Access Token" class="w-full p-2 text-sm border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-black outline-none">
                     </div>
                     <div>
-                        <!-- Updated: Default value added -->
                         <input type="text" id="ghFilename" value="SB.json" placeholder="File Name (e.g. syllabus.json)" class="w-full p-2 text-sm border rounded bg-gray-50 focus:bg-white focus:ring-1 focus:ring-black outline-none">
                     </div>
                     
-                    <!-- Updated: Save Details Button -->
                     <button onclick="saveGitHubDetails()" class="w-full bg-gray-800 text-white p-2 rounded text-xs hover:bg-gray-900 transition flex items-center justify-center gap-1 mt-2">
                         <i class="fas fa-save"></i> Save Details
                     </button>
@@ -225,139 +210,159 @@
         </div>
     </div>
 
-    <!-- Main Layout Wrapper: Split Screen (Initially Hidden via JS logic, styled flex) -->
-    <div id="appLayout" class="main-layout flex h-screen w-full hidden">
+    <!-- Main Layout Wrapper: Split Screen (Initially Hidden) -->
+    <div id="appLayout" class="main-layout flex h-screen w-full hidden relative">
         
-        <!-- SIDEBAR CONTROL PANEL (Fixed Left Side) -->
-        <div class="sidebar-panel w-72 bg-white border-r border-gray-200 shadow-lg p-5 flex flex-col gap-5 shrink-0 h-full overflow-y-auto no-print z-50">
+        <!-- Mobile Overlay (Backdrop) -->
+        <div id="mobileOverlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
+
+        <!-- SIDEBAR CONTROL PANEL -->
+        <div id="sidebar" class="sidebar-panel fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200 shadow-2xl transform -translate-x-full md:translate-x-0 md:relative transition-transform duration-300 flex flex-col gap-5 shrink-0 h-full overflow-y-auto no-print">
             
-            <!-- Updated Header Title -->
-            <div class="border-b pb-3">
-                <h3 class="font-extrabold text-gray-900 text-xl leading-tight tracking-tight">SB School</h3>
-                <p class="text-xs text-gray-500 font-medium uppercase tracking-widest mt-1">Control Panel</p>
-            </div>
-
-            <!-- Create New Document -->
-            <div class="space-y-2">
-                <button onclick="location.reload()" class="w-full bg-indigo-600 text-white py-2.5 rounded-lg shadow-md hover:bg-indigo-700 transition flex items-center justify-center gap-2 text-sm font-medium">
-                    <i class="fas fa-home"></i> Back to Home
-                </button>
-            </div>
-
-            <!-- Text Styling Tools -->
-            <div class="space-y-2">
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Text Tools</p>
-                <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 space-y-3">
-                    
-                    <!-- Formatting Buttons -->
-                    <div class="flex gap-1 justify-between bg-white p-1 rounded border border-gray-200 shadow-sm">
-                        <button onmousedown="event.preventDefault(); formatText('bold')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 font-bold" title="Bold">B</button>
-                        <button onmousedown="event.preventDefault(); formatText('italic')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 italic" title="Italic">I</button>
-                        <button onmousedown="event.preventDefault(); formatText('underline')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 underline" title="Underline">U</button>
-                        <button onmousedown="event.preventDefault(); formatText('subscript')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 text-xs" title="Subscript">x₂</button>
-                        <button onmousedown="event.preventDefault(); formatText('superscript')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 text-xs" title="Superscript">x²</button>
+            <!-- Header Title -->
+            <div class="border-b pb-3 p-5">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-extrabold text-gray-900 text-xl leading-tight tracking-tight">SB School</h3>
+                        <p class="text-xs text-gray-500 font-medium uppercase tracking-widest mt-1">Control Panel</p>
                     </div>
+                    <button onclick="toggleMobileMenu()" class="md:hidden text-gray-500 hover:text-red-500">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
 
-                    <!-- Fonts -->
-                    <div class="space-y-1">
-                        <span class="text-xs text-gray-500">Fonts</span>
-                        <select onchange="changeFontFamily(this.value)" class="w-full p-2 border rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-black">
-                            <option value="'Inter', sans-serif">Inter (Clean)</option>
-                            <option value="'Roboto', sans-serif">Roboto (Standard)</option>
-                            <option value="'Montserrat', sans-serif">Montserrat (Modern)</option>
-                            <option value="'Playfair Display', serif">Playfair (Elegant)</option>
-                            <option value="'Oswald', sans-serif">Oswald (Bold)</option>
-                            <option value="'Great Vibes', cursive">Great Vibes (Cursive)</option>
-                            <option value="'Noto Nastaliq Urdu', serif">Noto Nastaliq (Urdu)</option>
+            <div class="px-5 flex flex-col gap-5 pb-5">
+                
+                <!-- NEW: AI Syllabus Generator -->
+                <div class="space-y-2">
+                    <p class="text-xs text-indigo-600 uppercase tracking-wider font-bold">✨ AI Syllabus Generator</p>
+                    <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-100 space-y-2">
+                        <input type="text" id="aiPrompt" placeholder="e.g. Class 5 Math" class="w-full p-2 text-xs border border-indigo-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white">
+                        <button onclick="generateWithAI()" id="btnAI" class="w-full bg-indigo-600 text-white py-2 rounded text-xs hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow-sm font-medium">
+                            <i class="fas fa-magic"></i> Generate with Gemini
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Create New Document -->
+                <div class="space-y-2">
+                    <button onclick="location.reload()" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 rounded-lg shadow-sm hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm font-medium">
+                        <i class="fas fa-home"></i> Back to Home
+                    </button>
+                </div>
+
+                <!-- Text Styling Tools -->
+                <div class="space-y-2">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Text Tools</p>
+                    <div class="p-3 bg-gray-50 rounded-lg border border-gray-100 space-y-3">
+                        
+                        <!-- Formatting Buttons -->
+                        <div class="flex gap-1 justify-between bg-white p-1 rounded border border-gray-200 shadow-sm">
+                            <button onmousedown="event.preventDefault(); formatText('bold')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 font-bold" title="Bold">B</button>
+                            <button onmousedown="event.preventDefault(); formatText('italic')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 italic" title="Italic">I</button>
+                            <button onmousedown="event.preventDefault(); formatText('underline')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 underline" title="Underline">U</button>
+                            <button onmousedown="event.preventDefault(); formatText('subscript')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 text-xs" title="Subscript">x₂</button>
+                            <button onmousedown="event.preventDefault(); formatText('superscript')" class="w-8 h-8 hover:bg-gray-100 rounded flex items-center justify-center text-gray-700 text-xs" title="Superscript">x²</button>
+                        </div>
+
+                        <!-- Fonts -->
+                        <div class="space-y-1">
+                            <span class="text-xs text-gray-500">Fonts</span>
+                            <select onchange="changeFontFamily(this.value)" class="w-full p-2 border rounded text-sm bg-white focus:outline-none focus:ring-1 focus:ring-black">
+                                <option value="'Inter', sans-serif">Inter (Clean)</option>
+                                <option value="'Roboto', sans-serif">Roboto (Standard)</option>
+                                <option value="'Montserrat', sans-serif">Montserrat (Modern)</option>
+                                <option value="'Playfair Display', serif">Playfair (Elegant)</option>
+                                <option value="'Oswald', sans-serif">Oswald (Bold)</option>
+                                <option value="'Great Vibes', cursive">Great Vibes (Cursive)</option>
+                                <option value="'Noto Nastaliq Urdu', serif">Noto Nastaliq (Urdu)</option>
+                            </select>
+                        </div>
+
+                        <!-- Font Size -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-500">Size</span>
+                            <div class="flex gap-1">
+                                <button onclick="changeFontSize(-1)" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Decrease Size">
+                                    <i class="fas fa-minus text-xs"></i>
+                                </button>
+                                <button onclick="changeFontSize(1)" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Increase Size">
+                                    <i class="fas fa-plus text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Alignment -->
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-500">Align</span>
+                            <div class="flex gap-1">
+                                <button onclick="alignText('left')" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Align Left">
+                                    <i class="fas fa-align-left"></i>
+                                </button>
+                                <button onclick="alignText('center')" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Align Center">
+                                    <i class="fas fa-align-center"></i>
+                                </button>
+                                <button onclick="alignText('right')" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Align Right">
+                                    <i class="fas fa-align-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page Settings -->
+                <div class="space-y-2">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Page Size</p>
+                    <div class="relative">
+                        <i class="fas fa-file-alt absolute left-3 top-3 text-gray-400"></i>
+                        <select onchange="changePageSize(this.value)" class="w-full pl-9 pr-3 py-2 border rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-black">
+                            <option value="a4">A4 (Standard)</option>
+                            <option value="letter">Letter (US)</option>
+                            <option value="legal">Legal</option>
+                            <option value="a5">A5 (Small)</option>
                         </select>
                     </div>
+                </div>
 
-                    <!-- Font Size -->
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-500">Size</span>
-                        <div class="flex gap-1">
-                            <button onclick="changeFontSize(-1)" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Decrease Size">
-                                <i class="fas fa-minus text-xs"></i>
-                            </button>
-                            <button onclick="changeFontSize(1)" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Increase Size">
-                                <i class="fas fa-plus text-xs"></i>
-                            </button>
-                        </div>
+                <!-- Realtime Status -->
+                <div class="space-y-2 pt-2 border-t border-gray-100">
+                    <div class="flex justify-between items-center">
+                        <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Realtime Status</p>
                     </div>
-
-                    <!-- Alignment -->
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-500">Align</span>
-                        <div class="flex gap-1">
-                            <button onclick="alignText('left')" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Align Left">
-                                <i class="fas fa-align-left"></i>
-                            </button>
-                            <button onclick="alignText('center')" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Align Center">
-                                <i class="fas fa-align-center"></i>
-                            </button>
-                            <button onclick="alignText('right')" class="w-8 h-8 bg-white border rounded hover:bg-gray-100 flex items-center justify-center text-gray-700 shadow-sm" title="Align Right">
-                                <i class="fas fa-align-right"></i>
-                            </button>
-                        </div>
+                    
+                    <div id="syncStatus" class="w-full text-xs text-center p-2 rounded border border-gray-200 bg-gray-50 text-gray-400 italic transition-all duration-300 flex items-center justify-center gap-2">
+                        <span id="syncIcon"><i class="fas fa-check-circle"></i></span>
+                        <span id="syncText">Ready</span>
+                    </div>
+                    <div id="activeFilenameDisplay" class="text-[10px] text-center text-gray-500 mt-1 truncate px-2 font-mono"></div>
+                    
+                    <div id="recentFilesList" class="space-y-1 max-h-32 overflow-y-auto pr-1 bg-gray-50 p-2 rounded-lg border border-gray-100 mt-2">
+                        <p class="text-xs text-gray-400 text-center italic py-2">No saved files.</p>
                     </div>
                 </div>
-            </div>
 
-            <!-- Page Settings -->
-            <div class="space-y-2">
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Page Size</p>
-                <div class="relative">
-                    <i class="fas fa-file-alt absolute left-3 top-3 text-gray-400"></i>
-                    <select onchange="changePageSize(this.value)" class="w-full pl-9 pr-3 py-2 border rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-black">
-                        <option value="a4">A4 (Standard)</option>
-                        <option value="letter">Letter (US)</option>
-                        <option value="legal">Legal</option>
-                        <option value="a5">A5 (Small)</option>
-                    </select>
+                <!-- Export Actions -->
+                <div class="space-y-2 mt-auto pt-4 border-t border-gray-100">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Export</p>
+                    
+                    <button onclick="window.print()" class="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm mb-2">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    
+                    <button onclick="window.print()" class="w-full bg-blue-50 border border-blue-200 text-blue-700 py-2 rounded-lg hover:bg-blue-100 transition flex items-center justify-center gap-2 text-sm mb-2" title="Use Destination: Save as PDF in Print Dialog">
+                        <i class="fas fa-file-pdf"></i> Save as PDF
+                    </button>
+
+                    <button onclick="downloadPDF()" class="w-full bg-red-50 border border-red-200 text-red-700 py-2 rounded-lg hover:bg-red-100 transition flex items-center justify-center gap-2 text-sm">
+                        <i class="fas fa-download"></i> Download PDF
+                    </button>
                 </div>
             </div>
-
-            <!-- Realtime Status (No buttons, just status) -->
-            <div class="space-y-2 pt-2 border-t border-gray-100">
-                <div class="flex justify-between items-center">
-                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Realtime Status</p>
-                </div>
-                
-                <!-- Realtime Status Indicator -->
-                <div id="syncStatus" class="w-full text-xs text-center p-2 rounded border border-gray-200 bg-gray-50 text-gray-400 italic transition-all duration-300 flex items-center justify-center gap-2">
-                    <span id="syncIcon"><i class="fas fa-check-circle"></i></span>
-                    <span id="syncText">Ready</span>
-                </div>
-                <!-- Updated: Active Filename Display -->
-                <div id="activeFilenameDisplay" class="text-[10px] text-center text-gray-500 mt-1 truncate px-2 font-mono"></div>
-                
-                <!-- Recent Files List -->
-                <div id="recentFilesList" class="space-y-1 max-h-32 overflow-y-auto pr-1 bg-gray-50 p-2 rounded-lg border border-gray-100 mt-2">
-                    <p class="text-xs text-gray-400 text-center italic py-2">No saved files.</p>
-                </div>
-            </div>
-
-            <!-- Export Actions -->
-            <div class="space-y-2 mt-auto pt-4 border-t border-gray-100">
-                <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Export</p>
-                
-                <button onclick="window.print()" class="w-full bg-white border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm mb-2">
-                    <i class="fas fa-print"></i> Print
-                </button>
-                
-                <button onclick="window.print()" class="w-full bg-blue-50 border border-blue-200 text-blue-700 py-2 rounded-lg hover:bg-blue-100 transition flex items-center justify-center gap-2 text-sm mb-2" title="Use Destination: Save as PDF in Print Dialog">
-                    <i class="fas fa-file-pdf"></i> Save as PDF
-                </button>
-
-                <button onclick="downloadPDF()" class="w-full bg-red-50 border border-red-200 text-red-700 py-2 rounded-lg hover:bg-red-100 transition flex items-center justify-center gap-2 text-sm">
-                    <i class="fas fa-download"></i> Download PDF
-                </button>
-            </div>
-            
         </div>
 
         <!-- RIGHT SIDE: Content Area (Scrollable) -->
-        <div class="content-area flex-1 bg-[#f0f0f0] h-full overflow-y-auto p-10 flex justify-center items-start">
+        <div class="content-area flex-1 bg-[#f0f0f0] h-full overflow-y-auto p-4 md:p-10 flex justify-center items-start">
             
             <!-- Main Paper -->
             <div id="paperContent" class="paper">
@@ -435,6 +440,12 @@
             </div>
 
         </div>
+
+        <!-- Mobile Toggle Button (Visible only on mobile) -->
+        <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="md:hidden fixed bottom-6 right-6 bg-black text-white w-14 h-14 rounded-full shadow-2xl z-50 flex items-center justify-center hover:bg-gray-900 transition active:scale-95 no-print">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+
     </div>
 
     <script>
@@ -442,9 +453,32 @@
         let autoSaveTimer;
         let currentFilename = ""; 
         let isGitHubConnected = false;
+        
+        // Environment API Key
+        const apiKey = ""; 
+
+        // --- MOBILE MENU LOGIC ---
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            const icon = document.querySelector('#mobileMenuBtn i');
+            
+            const isHidden = sidebar.classList.contains('-translate-x-full');
+
+            if (isHidden) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times'); 
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                icon.classList.add('fa-bars');
+                icon.classList.remove('fa-times');
+            }
+        }
 
         // --- STARTUP LOGIC ---
-        
         function toggleGitHubSettings() {
             const settings = document.getElementById('ghSettings');
             const chevron = document.getElementById('ghChevron');
@@ -452,7 +486,6 @@
             chevron.style.transform = settings.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
         }
 
-        // Updated: Save GitHub Details Function
         function saveGitHubDetails() {
             const username = document.getElementById('ghUsername').value.trim();
             const repo = document.getElementById('ghRepo').value.trim();
@@ -468,111 +501,15 @@
             alert("GitHub Details Saved Successfully!");
         }
 
-        // Load saved GH creds on startup
         window.addEventListener('load', () => {
             const creds = JSON.parse(localStorage.getItem('sb_gh_creds') || '{}');
             if(creds.username) document.getElementById('ghUsername').value = creds.username;
             if(creds.repo) document.getElementById('ghRepo').value = creds.repo;
             if(creds.token) document.getElementById('ghToken').value = creds.token;
-            // Also restore filename if it exists
             if(creds.filename && document.getElementById('ghFilename')) document.getElementById('ghFilename').value = creds.filename;
             
-            // Render table defaults
             renderRows();
         });
-
-        // 1. Fetch File List from GitHub
-        async function fetchGitHubFiles() {
-            const username = document.getElementById('ghUsername').value.trim();
-            const repo = document.getElementById('ghRepo').value.trim();
-            const token = document.getElementById('ghToken').value.trim();
-            const listContainer = document.getElementById('githubFilesList');
-            const btn = document.getElementById('btnFetchFiles');
-
-            if(!username || !repo || !token) {
-                alert("Please enter GitHub credentials in settings first.");
-                toggleGitHubSettings();
-                return;
-            }
-
-            // Save creds
-            localStorage.setItem('sb_gh_creds', JSON.stringify({username, repo, token}));
-
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-            listContainer.classList.remove('hidden');
-            listContainer.innerHTML = '<p class="text-xs text-center p-2">Fetching files...</p>';
-
-            try {
-                const response = await fetch(`https://api.github.com/repos/${username}/${repo}/contents`, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
-
-                if(!response.ok) throw new Error("Failed to fetch files");
-
-                const files = await response.json();
-                listContainer.innerHTML = '';
-
-                // Filter for JSON files
-                const jsonFiles = files.filter(f => f.name.endsWith('.json'));
-
-                if(jsonFiles.length === 0) {
-                    listContainer.innerHTML = '<p class="text-xs text-center p-2 text-gray-500">No .json files found.</p>';
-                } else {
-                    jsonFiles.forEach(file => {
-                        const item = document.createElement('div');
-                        item.className = "p-2 hover:bg-blue-50 border-b border-gray-100 last:border-0 cursor-pointer text-sm flex items-center gap-2";
-                        item.innerHTML = `<i class="far fa-file-code text-blue-500"></i> ${file.name}`;
-                        item.onclick = () => loadGitHubFile(file.name);
-                        listContainer.appendChild(item);
-                    });
-                }
-
-            } catch(e) {
-                listContainer.innerHTML = `<p class="text-xs text-center p-2 text-red-500">Error: ${e.message}</p>`;
-            } finally {
-                btn.innerHTML = '<i class="fab fa-github"></i> Load from GitHub';
-            }
-        }
-
-        // 2. Load Specific File content
-        async function loadGitHubFile(filename) {
-            const creds = JSON.parse(localStorage.getItem('sb_gh_creds'));
-            try {
-                const response = await fetch(`https://api.github.com/repos/${creds.username}/${creds.repo}/contents/${filename}`, {
-                    headers: { 'Authorization': `token ${creds.token}` }
-                });
-                
-                if(!response.ok) throw new Error("Load failed");
-                
-                const data = await response.json();
-                const content = JSON.parse(decodeURIComponent(escape(atob(data.content)))); // Base64 decode handles utf8
-
-                // Populate UI
-                document.getElementById('schoolName').innerHTML = content.schoolName || "";
-                document.getElementById('schoolAddress').innerHTML = content.address || "";
-                document.getElementById('docTitle').innerHTML = content.title || "";
-                document.getElementById('docClass').innerHTML = content.class || "";
-                document.getElementById('syllabusBody').innerHTML = content.rows || "";
-
-                // Set state
-                currentFilename = filename;
-                isGitHubConnected = true;
-                
-                // Hide modal
-                document.getElementById('startupModal').style.display = 'none';
-                document.getElementById('appLayout').classList.remove('hidden');
-
-                // Start observing changes
-                initAutoSave();
-                updateSyncStatus('loaded');
-                
-                // Show filename in status
-                document.getElementById('activeFilenameDisplay').innerText = "File: " + currentFilename;
-
-            } catch(e) {
-                alert("Error loading file: " + e.message);
-            }
-        }
 
         // 3. Start New
         function startApplication() {
@@ -582,7 +519,6 @@
                 return;
             }
 
-            // Save creds even if just creating new (so we can sync later)
             const username = document.getElementById('ghUsername').value.trim();
             const repo = document.getElementById('ghRepo').value.trim();
             const token = document.getElementById('ghToken').value.trim();
@@ -590,10 +526,7 @@
             
             if(username && repo && token) {
                 localStorage.setItem('sb_gh_creds', JSON.stringify({username, repo, token, filename: manualFile}));
-                
-                // Use manual filename if provided, else auto-generate from project name
                 currentFilename = manualFile || (docName.replace(/[^a-z0-9]/gi, '_').toLowerCase() + ".json");
-                
                 isGitHubConnected = true;
                 initAutoSave();
             } else {
@@ -601,14 +534,58 @@
                 currentFilename = "Local Draft";
             }
 
-            // Show Project Name in status (Updated as requested)
             document.getElementById('activeFilenameDisplay').innerText = docName;
-
-            // Hide Modal, Show App
             document.getElementById('startupModal').style.display = 'none';
             document.getElementById('appLayout').classList.remove('hidden');
         }
 
+        // --- GEMINI AI LOGIC ---
+        async function generateWithAI() {
+            const promptInput = document.getElementById('aiPrompt');
+            const prompt = promptInput.value.trim();
+            if (!prompt) return alert("Please enter a topic first.");
+
+            const btn = document.getElementById('btnAI');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: `Generate a syllabus based on this request: "${prompt}". 
+                                Return ONLY a raw JSON array of objects. 
+                                Each object must have 'subject' and 'detail' properties. 
+                                Example format: [{"subject": "Math", "detail": "Chapter 1: Algebra"}, {"subject": "English", "detail": "Essay writing"}]
+                                Do not include markdown code blocks.`
+                            }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) throw new Error("AI Request Failed");
+
+                const data = await response.json();
+                const text = data.candidates[0].content.parts[0].text;
+                const jsonStr = text.replace(/```json|```/g, '').trim();
+                const syllabusData = JSON.parse(jsonStr);
+
+                syllabusData.forEach(item => {
+                    addRow(item.subject, item.detail);
+                });
+
+            } catch (e) {
+                alert("Error: " + e.message);
+                console.error(e);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
 
         // --- MAIN APP LOGIC ---
 
@@ -627,11 +604,10 @@
             }
         });
 
-        // Detect Changes for Auto Save
         document.getElementById('paperContent').addEventListener('input', () => {
             updateSyncStatus('editing');
             clearTimeout(autoSaveTimer);
-            autoSaveTimer = setTimeout(performAutoSave, 2000); // Save after 2 sec inactivity
+            autoSaveTimer = setTimeout(performAutoSave, 2000); 
         });
 
         function formatText(command) {
@@ -768,7 +744,6 @@
 
                 if(putRes.ok) {
                     updateSyncStatus('saved');
-                    // Save locally as well just in case
                     saveCurrentWork(true); 
                 } else {
                     updateSyncStatus('error');
