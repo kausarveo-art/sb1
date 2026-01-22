@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SB School System
-</title>
+    <title>Minimal Syllabus - Winter 2025</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
@@ -166,14 +165,26 @@
 
             <!-- Document Name Input -->
             <div class="mb-4">
-                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Project Name</label>
-                <input type="text" id="startDocName" placeholder="e.g. Winter Syllabus 2025" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
+                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">Document Name</label>
+                <input type="text" id="startDocName" placeholder="Your Document Name Here" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
             </div>
 
             <!-- Create Button -->
             <button onclick="startApplication()" class="w-full bg-black text-white py-3.5 rounded-xl font-semibold shadow-lg hover:bg-gray-800 transform hover:-translate-y-0.5 transition duration-200 flex items-center justify-center gap-2 mb-6">
                 Create Document <i class="fas fa-plus"></i>
             </button>
+
+            <!-- Saved Files Section (UPDATED) -->
+            <div class="mb-6 border-t pt-4">
+                <button onclick="toggleSavedFiles()" class="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition text-left text-sm font-medium text-gray-700 mb-2">
+                    <span><i class="fas fa-folder-open mr-2 text-blue-500"></i> Saved Files</span>
+                    <i id="savedFilesChevron" class="fas fa-chevron-down text-gray-400 text-xs transition-transform"></i>
+                </button>
+                
+                <div id="savedFilesListContainer" class="hidden space-y-2 max-h-40 overflow-y-auto bg-white p-1 rounded-lg border border-gray-100">
+                    <p class="text-xs text-gray-400 text-center italic py-2">No saved documents found.</p>
+                </div>
+            </div>
 
             <!-- Connect to GitHub Section -->
             <div class="border rounded-lg overflow-hidden border-gray-200">
@@ -234,17 +245,6 @@
 
             <div class="px-5 flex flex-col gap-5 pb-5">
                 
-                <!-- NEW: AI Syllabus Generator -->
-                <div class="space-y-2">
-                    <p class="text-xs text-indigo-600 uppercase tracking-wider font-bold">✨ AI Syllabus Generator</p>
-                    <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-100 space-y-2">
-                        <input type="text" id="aiPrompt" placeholder="e.g. Class 5 Math" class="w-full p-2 text-xs border border-indigo-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 bg-white">
-                        <button onclick="generateWithAI()" id="btnAI" class="w-full bg-indigo-600 text-white py-2 rounded text-xs hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow-sm font-medium">
-                            <i class="fas fa-magic"></i> Generate with Gemini
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Create New Document -->
                 <div class="space-y-2">
                     <button onclick="location.reload()" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 rounded-lg shadow-sm hover:bg-gray-50 transition flex items-center justify-center gap-2 text-sm font-medium">
@@ -322,23 +322,6 @@
                             <option value="legal">Legal</option>
                             <option value="a5">A5 (Small)</option>
                         </select>
-                    </div>
-                </div>
-
-                <!-- Realtime Status -->
-                <div class="space-y-2 pt-2 border-t border-gray-100">
-                    <div class="flex justify-between items-center">
-                        <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Realtime Status</p>
-                    </div>
-                    
-                    <div id="syncStatus" class="w-full text-xs text-center p-2 rounded border border-gray-200 bg-gray-50 text-gray-400 italic transition-all duration-300 flex items-center justify-center gap-2">
-                        <span id="syncIcon"><i class="fas fa-check-circle"></i></span>
-                        <span id="syncText">Ready</span>
-                    </div>
-                    <div id="activeFilenameDisplay" class="text-[10px] text-center text-gray-500 mt-1 truncate px-2 font-mono"></div>
-                    
-                    <div id="recentFilesList" class="space-y-1 max-h-32 overflow-y-auto pr-1 bg-gray-50 p-2 rounded-lg border border-gray-100 mt-2">
-                        <p class="text-xs text-gray-400 text-center italic py-2">No saved files.</p>
                     </div>
                 </div>
 
@@ -453,9 +436,6 @@
         let autoSaveTimer;
         let currentFilename = ""; 
         let isGitHubConnected = false;
-        
-        // Environment API Key
-        const apiKey = ""; 
 
         // --- MOBILE MENU LOGIC ---
         function toggleMobileMenu() {
@@ -479,11 +459,21 @@
         }
 
         // --- STARTUP LOGIC ---
+        
         function toggleGitHubSettings() {
             const settings = document.getElementById('ghSettings');
             const chevron = document.getElementById('ghChevron');
             settings.classList.toggle('hidden');
             chevron.style.transform = settings.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        function toggleSavedFiles() {
+            const container = document.getElementById('savedFilesListContainer');
+            const chevron = document.getElementById('savedFilesChevron');
+            container.classList.toggle('hidden');
+            if(chevron) {
+                chevron.style.transform = container.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+            }
         }
 
         function saveGitHubDetails() {
@@ -502,6 +492,7 @@
         }
 
         window.addEventListener('load', () => {
+            // Load Creds
             const creds = JSON.parse(localStorage.getItem('sb_gh_creds') || '{}');
             if(creds.username) document.getElementById('ghUsername').value = creds.username;
             if(creds.repo) document.getElementById('ghRepo').value = creds.repo;
@@ -509,13 +500,49 @@
             if(creds.filename && document.getElementById('ghFilename')) document.getElementById('ghFilename').value = creds.filename;
             
             renderRows();
+            loadSavedFilesList(); // Load the saved files list on startup
         });
+
+        // Populate Saved Files List in Startup Modal
+        function loadSavedFilesList() {
+            const listContainer = document.getElementById('savedFilesListContainer');
+            const files = JSON.parse(localStorage.getItem('sb_syllabus_files') || "[]");
+
+            if(files.length === 0) {
+                listContainer.innerHTML = '<p class="text-xs text-gray-400 text-center italic py-2">No saved documents found.</p>';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            files.forEach(file => {
+                const item = document.createElement('div');
+                item.className = "flex justify-between items-center p-3 bg-white border border-gray-100 rounded-lg hover:bg-gray-50 cursor-pointer transition group";
+                item.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                            <i class="far fa-file-alt"></i>
+                        </div>
+                        <div class="truncate">
+                            <p class="text-sm font-semibold text-gray-800 truncate">${file.displayName}</p>
+                            <p class="text-[10px] text-gray-400">${file.date}</p>
+                        </div>
+                    </div>
+                    <button onclick="event.stopPropagation(); deleteFile(${file.id})" class="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition p-2">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                item.onclick = (e) => {
+                    if(!e.target.closest('button')) loadFile(file);
+                }
+                listContainer.appendChild(item);
+            });
+        }
 
         // 3. Start New
         function startApplication() {
             const docName = document.getElementById('startDocName').value.trim();
             if(!docName) {
-                alert("Please enter a Project Name.");
+                alert("Please enter a Document Name.");
                 return;
             }
 
@@ -534,58 +561,14 @@
                 currentFilename = "Local Draft";
             }
 
-            document.getElementById('activeFilenameDisplay').innerText = docName;
+            // Set Document Name as Title
+            // document.getElementById('docTitle').innerText = docName; 
+
+            // Hide Modal, Show App
             document.getElementById('startupModal').style.display = 'none';
             document.getElementById('appLayout').classList.remove('hidden');
         }
 
-        // --- GEMINI AI LOGIC ---
-        async function generateWithAI() {
-            const promptInput = document.getElementById('aiPrompt');
-            const prompt = promptInput.value.trim();
-            if (!prompt) return alert("Please enter a topic first.");
-
-            const btn = document.getElementById('btnAI');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-            btn.disabled = true;
-
-            try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [{
-                                text: `Generate a syllabus based on this request: "${prompt}". 
-                                Return ONLY a raw JSON array of objects. 
-                                Each object must have 'subject' and 'detail' properties. 
-                                Example format: [{"subject": "Math", "detail": "Chapter 1: Algebra"}, {"subject": "English", "detail": "Essay writing"}]
-                                Do not include markdown code blocks.`
-                            }]
-                        }]
-                    })
-                });
-
-                if (!response.ok) throw new Error("AI Request Failed");
-
-                const data = await response.json();
-                const text = data.candidates[0].content.parts[0].text;
-                const jsonStr = text.replace(/```json|```/g, '').trim();
-                const syllabusData = JSON.parse(jsonStr);
-
-                syllabusData.forEach(item => {
-                    addRow(item.subject, item.detail);
-                });
-
-            } catch (e) {
-                alert("Error: " + e.message);
-                console.error(e);
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
 
         // --- MAIN APP LOGIC ---
 
@@ -604,8 +587,8 @@
             }
         });
 
+        // Detect Changes for Auto Save
         document.getElementById('paperContent').addEventListener('input', () => {
-            updateSyncStatus('editing');
             clearTimeout(autoSaveTimer);
             autoSaveTimer = setTimeout(performAutoSave, 2000); 
         });
@@ -651,57 +634,45 @@
 
         function downloadPDF() {
             const element = document.getElementById('paperContent');
+            
+            // Hide no-print elements
+            const noPrintElements = element.querySelectorAll('.no-print');
+            noPrintElements.forEach(el => el.style.display = 'none');
+
             const opt = { margin: 0, filename: 'Syllabus.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-            const btn = event.currentTarget;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
-            html2pdf().set(opt).from(element).save().then(() => { btn.innerHTML = originalText; });
+            
+            let btn = null;
+            let originalText = '';
+            if(event && event.currentTarget) {
+                btn = event.currentTarget;
+                originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+            }
+
+            html2pdf().set(opt).from(element).save().then(() => { 
+                // Restore visibility
+                noPrintElements.forEach(el => el.style.display = '');
+                if(btn) btn.innerHTML = originalText; 
+            }).catch(() => {
+                noPrintElements.forEach(el => el.style.display = '');
+                if(btn) btn.innerHTML = originalText;
+            });
         }
 
         // --- REALTIME SYNC LOGIC ---
 
         function initAutoSave() {
             if(isGitHubConnected && currentFilename) {
-                updateSyncStatus('ready');
-            } else {
-                document.getElementById('syncStatus').innerHTML = '<span class="text-gray-400">Offline Mode</span>';
-            }
-        }
-
-        function updateSyncStatus(state) {
-            const statusBox = document.getElementById('syncStatus');
-            const icon = document.getElementById('syncIcon');
-            const text = document.getElementById('syncText');
-
-            if(!isGitHubConnected) return;
-
-            if(state === 'editing') {
-                statusBox.className = "w-full text-xs text-center p-2 rounded border border-yellow-200 bg-yellow-50 text-yellow-600 transition-all flex items-center justify-center gap-2";
-                icon.innerHTML = '<i class="fas fa-pencil-alt"></i>';
-                text.innerText = "Unsaved changes...";
-            } else if (state === 'syncing') {
-                statusBox.className = "w-full text-xs text-center p-2 rounded border border-blue-200 bg-blue-50 text-blue-600 transition-all flex items-center justify-center gap-2";
-                icon.innerHTML = '<i class="fas fa-sync fa-spin"></i>';
-                text.innerText = "Syncing to GitHub...";
-            } else if (state === 'saved') {
-                statusBox.className = "w-full text-xs text-center p-2 rounded border border-green-200 bg-green-50 text-green-600 transition-all flex items-center justify-center gap-2";
-                icon.innerHTML = '<i class="fas fa-check"></i>';
-                text.innerText = "Saved to GitHub";
-            } else if (state === 'error') {
-                statusBox.className = "w-full text-xs text-center p-2 rounded border border-red-200 bg-red-50 text-red-600 transition-all flex items-center justify-center gap-2";
-                icon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-                text.innerText = "Sync Failed";
-            } else if (state === 'loaded') {
-                statusBox.className = "w-full text-xs text-center p-2 rounded border border-gray-200 bg-gray-50 text-gray-500 transition-all flex items-center justify-center gap-2";
-                icon.innerHTML = '<i class="fas fa-cloud-download-alt"></i>';
-                text.innerText = "Loaded from Cloud";
+                // Initial save or status update
             }
         }
 
         async function performAutoSave() {
+            // Save locally first
+            saveCurrentWork(true);
+
             if(!isGitHubConnected || !currentFilename) return;
 
-            updateSyncStatus('syncing');
             const creds = JSON.parse(localStorage.getItem('sb_gh_creds'));
 
             const content = {
@@ -743,13 +714,9 @@
                 });
 
                 if(putRes.ok) {
-                    updateSyncStatus('saved');
-                    saveCurrentWork(true); 
-                } else {
-                    updateSyncStatus('error');
-                }
+                    console.log("Synced to GitHub");
+                } 
             } catch(e) {
-                updateSyncStatus('error');
                 console.error(e);
             }
         }
@@ -757,41 +724,88 @@
         // --- LOCAL STORAGE LOGIC ---
 
         function saveCurrentWork(silent = false) {
-            const name = document.getElementById('schoolName').innerText.trim() || "Untitled";
+            const name = document.getElementById('startDocName').value.trim() || document.getElementById('docTitle').innerText.trim() || "Untitled";
+            
             const fileData = {
                 id: Date.now(),
                 displayName: name,
                 date: new Date().toLocaleDateString(),
                 schoolName: document.getElementById('schoolName').innerHTML,
+                address: document.getElementById('schoolAddress').innerHTML,
+                title: document.getElementById('docTitle').innerHTML,
+                class: document.getElementById('docClass').innerHTML,
+                session: document.getElementById('docSession').innerHTML,
+                term: document.getElementById('docTerm').innerHTML,
                 rows: document.getElementById('syllabusBody').innerHTML,
+                logoSrc: document.getElementById('logoImage').src,
+                isLogoVisible: !document.getElementById('logoImage').classList.contains('hidden')
             };
 
             let files = JSON.parse(localStorage.getItem('sb_syllabus_files') || "[]");
-            files.unshift(fileData);
-            if(files.length > 10) files.pop();
+            
+            // Check if file with same name exists, update it instead of adding new
+            // For simplicity in this "Save Version" logic, we just add new or replace if ID matches?
+            // Actually, for "Auto Save" behavior, we should update the top one if it's the current session.
+            // But here we are just adding to top. To avoid duplicates during autosave, we might need session tracking.
+            // Simplified: Unshift new one. (To prevent infinite list in autosave, real logic needs ID tracking).
+            // FIX: We will only save on demand or throttle heavily. But user asked for "Save Rhy". 
+            // Better approach: Update the file if we are editing it.
+            
+            // NOTE: Since we don't track session ID easily here without complicating code, 
+            // we will just save UNIQUE names. If name exists, update it.
+            
+            const existingIndex = files.findIndex(f => f.displayName === name);
+            if (existingIndex > -1) {
+                files[existingIndex] = fileData; // Update
+            } else {
+                files.unshift(fileData); // Add new
+            }
+            
+            // REMOVED LIMIT as requested: if(files.length > 10) files.pop();
+            
             localStorage.setItem('sb_syllabus_files', JSON.stringify(files));
-            renderRecentFiles();
-            if(!silent) alert("Saved Locally!");
+            if(!silent && document.getElementById('startupModal').style.display !== 'none') {
+                loadSavedFilesList(); // Refresh list if modal is open
+            }
         }
 
-        function renderRecentFiles() {
-            const list = document.getElementById('recentFilesList');
-            const files = JSON.parse(localStorage.getItem('sb_syllabus_files') || "[]");
-            if(files.length === 0) {
-                list.innerHTML = '<p class="text-xs text-gray-400 text-center italic py-2">No saved files.</p>';
-                return;
+        function loadFile(file) {
+            if(confirm("Load this file? Unsaved changes will be lost.")) {
+                document.getElementById('schoolName').innerHTML = file.schoolName;
+                document.getElementById('schoolAddress').innerHTML = file.address;
+                document.getElementById('docTitle').innerHTML = file.title;
+                document.getElementById('docClass').innerHTML = file.class;
+                document.getElementById('docSession').innerHTML = file.session;
+                document.getElementById('docTerm').innerHTML = file.term;
+                document.getElementById('syllabusBody').innerHTML = file.rows;
+                
+                // Restore document name input if needed
+                document.getElementById('startDocName').value = file.displayName;
+
+                if(file.isLogoVisible) {
+                    const img = document.getElementById('logoImage');
+                    const icon = document.getElementById('defaultLogoIcon');
+                    img.src = file.logoSrc;
+                    img.classList.remove('hidden');
+                    icon.classList.add('hidden');
+                } else {
+                    document.getElementById('logoImage').classList.add('hidden');
+                    document.getElementById('defaultLogoIcon').classList.remove('hidden');
+                }
+
+                // Hide modal
+                document.getElementById('startupModal').style.display = 'none';
+                document.getElementById('appLayout').classList.remove('hidden');
             }
-            list.innerHTML = '';
-            files.forEach(file => {
-                const item = document.createElement('div');
-                item.className = "flex justify-between p-2 bg-white rounded border cursor-pointer hover:bg-gray-50 mb-1";
-                item.innerHTML = `<span class="text-xs font-semibold truncate w-24">${file.displayName}</span>`;
-                item.onclick = () => {
-                    document.getElementById('schoolName').innerHTML = file.schoolName;
-                    document.getElementById('syllabusBody').innerHTML = file.rows;
-                };
-                list.appendChild(item);
-            });
+        }
+
+        function deleteFile(id) {
+            if(confirm("Delete this saved file permanently?")) {
+                let files = JSON.parse(localStorage.getItem('sb_syllabus_files') || "[]");
+                files = files.filter(f => f.id !== id);
+                localStorage.setItem('sb_syllabus_files', JSON.stringify(files));
+                loadSavedFilesList();
+            }
         }
 
         // --- TABLE LOGIC ---
